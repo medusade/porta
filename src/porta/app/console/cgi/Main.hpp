@@ -21,9 +21,18 @@
 #ifndef _PORTA_APP_CONSOLE_CGI_MAIN_HPP
 #define _PORTA_APP_CONSOLE_CGI_MAIN_HPP
 
+#include "porta/protocol/http/cgi/environment/variables/Reader.hpp"
+#include "porta/protocol/http/cgi/environment/variables/Values.hpp"
 #include "porta/protocol/http/cgi/environment/variable/Value.hpp"
 #include "porta/protocol/http/cgi/environment/variable/Name.hpp"
 #include "porta/protocol/http/cgi/environment/variable/Which.hpp"
+#include "porta/protocol/http/message/header/field/Line.hpp"
+#include "porta/protocol/http/message/header/field/Name.hpp"
+#include "porta/protocol/http/message/header/field/Which.hpp"
+#include "porta/protocol/http/content/type/Name.hpp"
+#include "porta/protocol/http/content/type/Which.hpp"
+#include "porta/io/os/crt/file/Attached.hpp"
+#include "porta/io/crt/file/Reader.hpp"
 #include "porta/console/getopt/Main.hpp"
 
 namespace porta {
@@ -45,7 +54,20 @@ public:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    MainT() {
+    MainT()
+    : m_cr('\r'), m_lf('\n'),
+      m_catchArgvFileLabel("argv"),
+      m_catchArgvFileName("cgicatch-argv.txt"),
+      m_catchEnvFileLabel("env"),
+      m_catchEnvFileName("cgicatch-env.txt"),
+      m_catchStdinFileLabel("stdin"),
+      m_catchStdinFileName("cgicatch-stdin.txt"),
+      m_contentType
+      (porta::protocol::http::message::header::field::ContentType,
+       porta::protocol::http::content::type::Name::OfWhich
+       (porta::protocol::http::content::type::Text)),
+      m_outContentType(0),
+      m_contentLength(0) {
     }
     virtual ~MainT() {
     }
@@ -55,6 +77,24 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int RunCgi(int argc, char** argv, char** env) {
         int err = 0;
+        porta::protocol::http::cgi::environment::variable::Which e;
+        for (e = porta::protocol::http::cgi::environment::variable::First;
+             e <= porta::protocol::http::cgi::environment::variable::Last; ++e) {
+            const char* name = porta::protocol::http::cgi::environment::variable::Name::OfWhich(e);
+            if (name) {
+                const char* value = m_environment[e];
+                this->Out(name);
+                this->Out(" = ");
+                if (value) {
+                    this->Out("\"");
+                    this->Out(value);
+                    this->Out("\"");
+                } else {
+                    this->Out("0");
+                }
+                this->OutLn();
+            }
+        }
         return err;
     }
     virtual int BeforeRunCgi(int argc, char** argv, char** env) {
@@ -190,6 +230,7 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int GetEnvironment(int argc, char** argv, char** env) {
         int err = 0;
+        m_environment.Get();
         return err;
     }
     virtual int BeforeGetEnvironment(int argc, char** argv, char** env) {
@@ -205,6 +246,17 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int ReadEnvironment(int argc, char** argv, char** env) {
         int err = 0;
+        const char* chars = 0;
+        if ((chars = m_catchEnvFileName.HasChars())) {
+            io::crt::file::Reader reader;
+            if ((reader.Open(chars))) {
+                if (0 < (reader.ReadLn())) {
+                    protocol::http::cgi::environment::variables::Reader eReader;
+                    eReader.Read(m_environment, reader);
+                }
+                reader.Close();
+            }
+        }
         return err;
     }
     virtual int BeforeReadEnvironment(int argc, char** argv, char** env) {
@@ -321,7 +373,18 @@ protected:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
+    virtual const char* OutContentType() {
+        if (!(m_outContentType)) {
+            size_t length = 0;
+            if ((m_outContentType = m_contentType.HasChars(length))) {
+                this->Out(m_outContentType, length);
+                this->OutLn();
+            }
+        }
+        return m_outContentType;
+    }
     virtual FILE* OutStdOut() {
+        this->OutContentType();
         return this->StdOut();
     }
 
@@ -329,11 +392,26 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual bool SetFileModeIsBinary
     (FILE* file, bool modeIsBinary = true) const {
+        if (file) {
+            io::os::crt::file::Attached f(file);
+            if (f.SetModeIsBinary()) {
+                return true;
+            }
+        }
         return false;
     }
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
+protected:
+    const char m_cr, m_lf;
+    CharString m_catchArgvFileLabel, m_catchArgvFileName,
+               m_catchEnvFileLabel, m_catchEnvFileName,
+               m_catchStdinFileLabel, m_catchStdinFileName;
+    porta::protocol::http::message::header::field::Line m_contentType;
+    const char* m_outContentType;
+    size_t m_contentLength;
+    porta::protocol::http::cgi::environment::variables::Values m_environment;
 };
 typedef MainT<> Main;
 

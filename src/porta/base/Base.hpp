@@ -137,6 +137,7 @@ class _EXPORT_CLASS CharStringT: public TExtends {
 public:
     typedef TExtends Extends;
     typedef TChar Char;
+
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
     CharStringT(const wchar_t* chars) {
@@ -155,8 +156,19 @@ public:
     }
     CharStringT() {
     }
+
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
+    virtual CharStringT& Clear() {
+        this->clear();
+        return *this;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual CharStringT& Assign(const CharStringT& s) {
+        return this->Assign(s.chars());
+    }
     virtual CharStringT& Assign(const wchar_t* chars) {
         this->clear();
         this->Append(chars);
@@ -178,8 +190,12 @@ public:
         this->Append(chars, length);
         return *this;
     }
+
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
+    virtual CharStringT& Append(const CharStringT& s) {
+        return this->Append(s.chars());
+    }
     virtual CharStringT& Append(const wchar_t* chars) {
         this->Append(chars, wchars_t::count(chars));
         return *this;
@@ -206,6 +222,21 @@ public:
             }
         }
         return *this;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual const Char* HasChars(size_t& length) const {
+        return this->has_chars(length);
+    }
+    virtual const Char* HasChars() const {
+        return this->has_chars();
+    }
+    virtual const Char* Chars(size_t& length) const {
+        return this->chars(length);
+    }
+    virtual const Char* Chars() const {
+        return this->chars();
     }
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
@@ -234,6 +265,8 @@ public:
     CharsWrappedT(const Char* chars): Extends(chars) {
     }
     CharsWrappedT(const CharsWrappedT& copy): Extends(copy) {
+    }
+    CharsWrappedT(): Extends(0) {
     }
     virtual ~CharsWrappedT() {
     }

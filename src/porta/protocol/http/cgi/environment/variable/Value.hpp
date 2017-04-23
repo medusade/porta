@@ -48,21 +48,43 @@ public:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    ValueT(variable::Which which): Extends(OfWhich(which)) {
+    ValueT(variable::Which which): Extends(OfWhich(which)), m_which(which) {
         SetHasValue();
     }
-    ValueT(const ValueT& copy): Extends(copy) {
+    ValueT(const ValueT& copy): Extends(copy), m_which(copy.m_which) {
         SetHasValue();
+    }
+    ValueT(): m_which(variable::None) {
     }
     virtual ~ValueT() {
     }
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    virtual ValueT& operator = (variable::Which which) {
+    virtual ValueT& Append(const char* chars, size_t length) {
+        m_chars.Append(chars, length);
+        return *this;
+    }
+    virtual ValueT& Set() {
+        this->SetWrapped(m_chars.Chars());
+        return *this;
+    }
+    virtual ValueT& Clear() {
+        this->SetWrapped(0);
+        m_chars.Clear();
+        return *this;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual const Char* Get(variable::Which which) {
         const Char* value = OfWhich(which);
         this->SetWrapped(value);
-        SetHasValue();
+        value = SetHasValue();
+        return value;
+    }
+    virtual ValueT& operator = (variable::Which which) {
+        this->Get(which);
         return *this;
     }
 
@@ -104,7 +126,18 @@ public:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
+    virtual variable::Which SetWhich(variable::Which to) {
+        m_which = to;
+        return m_which;
+    }
+    virtual variable::Which Which() const {
+        return m_which;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
 protected:
+    variable::Which m_which;
     CharString m_chars;
 };
 typedef ValueT<> Value;

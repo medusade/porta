@@ -13,59 +13,74 @@
 /// or otherwise) arising in any way out of the use of this software, 
 /// even if advised of the possibility of such damage.
 ///
-///   File: Main.hpp
+///   File: Exception.hpp
 ///
 /// Author: $author$
-///   Date: 4/10/2017
+///   Date: 4/20/2017
 ///////////////////////////////////////////////////////////////////////
-#ifndef _PORTA_APP_CONSOLE_CGI_CATCHER_MAIN_HPP
-#define _PORTA_APP_CONSOLE_CGI_CATCHER_MAIN_HPP
+#ifndef _PORTA_PROTOCOL_HTTP_CGI_ENVIRONMENT_VARIABLES_EXCEPTION_HPP
+#define _PORTA_PROTOCOL_HTTP_CGI_ENVIRONMENT_VARIABLES_EXCEPTION_HPP
 
-#include "porta/app/console/cgi/Main.hpp"
+#include "porta/protocol/http/cgi/environment/variable/Which.hpp"
 
 namespace porta {
-namespace app {
-namespace console {
+namespace protocol {
+namespace http {
 namespace cgi {
-namespace catcher {
+namespace environment {
+namespace variables {
 
-typedef cgi::MainTImplements MainTImplements;
-typedef cgi::Main MainTExtends;
+typedef int ExceptionTStatus;
+typedef ImplementBase ExceptionTImplements;
+typedef Base ExceptionTExtends;
 ///////////////////////////////////////////////////////////////////////
-///  Class: MainT
+///  Class: ExceptionT
 ///////////////////////////////////////////////////////////////////////
 template
-<class TImplements = MainTImplements, class TExtends = MainTExtends>
-class _EXPORT_CLASS MainT: virtual public TImplements, public TExtends {
+<typename TStatus = ExceptionTStatus,
+ class TImplements = ExceptionTImplements, class TExtends = ExceptionTExtends>
+
+class _EXPORT_CLASS ExceptionT: virtual public TImplements, public TExtends {
 public:
     typedef TImplements Implements;
     typedef TExtends Extends;
-
+    typedef TStatus status_t;
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    MainT() {
+    enum {
+        Success = 0,
+        Failed = 1,
+        InvalidWhich = 2
+    };
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    ExceptionT(status_t status): m_status(status) {
     }
-    virtual ~MainT() {
+    ExceptionT(const ExceptionT& copy): m_status(copy.m_status) {
     }
-
+    virtual ~ExceptionT() {
+    }
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual status_t SetStatus(status_t to) {
+        m_status = to;
+        return m_status;
+    }
+    virtual status_t Status() const {
+        return m_status;
+    }
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
 protected:
-    ///////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////
-    virtual int xRunCgi(int argc, char** argv, char** env) {
-        int err = 0;
-        this->OutLn("Hi");
-        return err;
-    }
-
-    ///////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////
+    status_t m_status;
 };
-typedef MainT<> Main;
+typedef ExceptionT<> Exception;
 
-} // namespace catcher
+} // namespace variables 
+} // namespace environment 
 } // namespace cgi 
-} // namespace console 
-} // namespace app 
+} // namespace http 
+} // namespace protocol 
 } // namespace porta 
 
-#endif // _PORTA_APP_CONSOLE_CGI_CATCHER_MAIN_HPP 
+#endif // _PORTA_PROTOCOL_HTTP_CGI_ENVIRONMENT_VARIABLES_EXCEPTION_HPP 

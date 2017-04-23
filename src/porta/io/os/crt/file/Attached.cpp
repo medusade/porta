@@ -13,27 +13,21 @@
 /// or otherwise) arising in any way out of the use of this software, 
 /// even if advised of the possibility of such damage.
 ///
-///   File: Reader.hpp
+///   File: Attached.cpp
 ///
 /// Author: $author$
-///   Date: 4/14/2017
+///   Date: 4/19/2017
 ///////////////////////////////////////////////////////////////////////
-#ifndef _PORTA_IO_CRT_FILE_READER_HPP
-#define _PORTA_IO_CRT_FILE_READER_HPP
-
-#include "porta/base/Base.hpp"
-#include "patrona/cpp/xos/io/crt/file/Reader.hpp"
+#include "porta/io/os/crt/file/Attached.hpp"
 
 namespace porta {
 namespace io {
+namespace os {
 namespace crt {
 namespace file {
 
-typedef patrona::io::crt::file::Reader Reader;
-
 } // namespace file 
 } // namespace crt 
+} // namespace os 
 } // namespace io 
 } // namespace porta 
-
-#endif // _PORTA_IO_CRT_FILE_READER_HPP 
