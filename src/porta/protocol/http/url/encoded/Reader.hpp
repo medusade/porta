@@ -44,9 +44,9 @@ public:
     typedef ReaderT Derives;
 
     typedef Extends reader_t;
-    typedef typename Implements::what_t what_t;
-    typedef typename Implements::sized_t sized_t;
-    typedef int end_t;
+    typedef typename Extends::what_t what_t;
+    typedef typename Extends::sized_t sized_t;
+    typedef typename Extends::sized_t end_t;
     enum { end = 0 };
 
     ///////////////////////////////////////////////////////////////////////

@@ -20,22 +20,20 @@
 ///////////////////////////////////////////////////////////////////////
 #ifndef _PORTA_IO_CRT_FILE_WRITER_HPP
 #define _PORTA_IO_CRT_FILE_WRITER_HPP
+
 #include "porta/base/Base.hpp"
+#include "patrona/cpp/xos/io/crt/file/Writer.hpp"
 
 namespace porta {
 namespace io {
 namespace crt {
 namespace file {
 
+typedef patrona::io::crt::file::Writer Writer;
 
-
-
-} // namespace file 
+} // namespace file
 } // namespace crt 
 } // namespace io 
 } // namespace porta 
 
-
 #endif // _PORTA_IO_CRT_FILE_WRITER_HPP 
-        
-

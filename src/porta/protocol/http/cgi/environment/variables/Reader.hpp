@@ -195,9 +195,9 @@ protected:
     ///////////////////////////////////////////////////////////////////////
 protected:
     typedef bool (Derives::*MOnRead)(const char& c);
-    static const char eq_ = '=';
-    static const char cr_ = '\r';
-    static const char lf_ = '\n';
+    const char eq_ = '=';
+    const char cr_ = '\r';
+    const char lf_ = '\n';
     MOnRead m_onRead;
     CharString m_name;
     Values* m_values;

@@ -31,6 +31,9 @@
 #include "porta/protocol/http/message/header/field/Which.hpp"
 #include "porta/protocol/http/content/type/Name.hpp"
 #include "porta/protocol/http/content/type/Which.hpp"
+#include "porta/protocol/http/content/Reader.hpp"
+#include "porta/protocol/http/url/encoded/Reader.hpp"
+#include "porta/protocol/http/form/Reader.hpp"
 #include "porta/io/os/crt/file/Attached.hpp"
 #include "porta/io/crt/file/Reader.hpp"
 #include "porta/console/getopt/Main.hpp"
@@ -40,14 +43,18 @@ namespace app {
 namespace console {
 namespace cgi {
 
+typedef porta::protocol::http::content::ReadObserver MainTContentReadObserver;
 typedef porta::console::getopt::MainImplements MainTImplements;
 typedef porta::console::getopt::Main MainTExtends;
 ///////////////////////////////////////////////////////////////////////
 ///  Class: MainT
 ///////////////////////////////////////////////////////////////////////
 template
-<class TImplements = MainTImplements, class TExtends = MainTExtends>
-class _EXPORT_CLASS MainT: virtual public TImplements, public TExtends {
+<class TContentReadObserver = MainTContentReadObserver,
+ class TImplements = MainTImplements, class TExtends = MainTExtends>
+class _EXPORT_CLASS MainT
+: virtual public TContentReadObserver,
+  virtual public TImplements, public TExtends {
 public:
     typedef TImplements Implements;
     typedef TExtends Extends;
@@ -56,18 +63,19 @@ public:
     ///////////////////////////////////////////////////////////////////////
     MainT()
     : m_cr('\r'), m_lf('\n'),
-      m_catchArgvFileLabel("argv"),
-      m_catchArgvFileName("cgicatch-argv.txt"),
-      m_catchEnvFileLabel("env"),
-      m_catchEnvFileName("cgicatch-env.txt"),
-      m_catchStdinFileLabel("stdin"),
-      m_catchStdinFileName("cgicatch-stdin.txt"),
+      m_catchArgumentsFileLabel("arguments"),
+      m_catchArgumentsFileName("cgicatch-argv.txt"),
+      m_catchEnvironmentFileLabel("environment"),
+      m_catchEnvironmentFileName("cgicatch-env.txt"),
+      m_catchInputFileLabel("stdin"),
+      m_catchInputFileName("cgicatch-stdin.txt"),
+      m_catchFormFileLabel("form"),
+      m_catchFormFileName("cgicatch-form.txt"),
       m_contentType
       (porta::protocol::http::message::header::field::ContentType,
        porta::protocol::http::content::type::Name::OfWhich
        (porta::protocol::http::content::type::Text)),
-      m_outContentType(0),
-      m_contentLength(0) {
+      m_outContentType(0) {
     }
     virtual ~MainT() {
     }
@@ -77,7 +85,36 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int RunCgi(int argc, char** argv, char** env) {
         int err = 0;
+        if (!(err = OutForm(argc, argv, env))) {
+            if (!(err = OutEnvironment(argc, argv, env))) {
+                if (!(err = OutArguments(argc, argv, env))) {
+                    if (!(err = OutInput(argc, argv, env))) {
+                    }
+                }
+            }
+        }
+        return err;
+    }
+    virtual int BeforeRunCgi(int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+    virtual int AfterRunCgi(int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int OutEnvironment(int argc, char** argv, char** env) {
+        int err = 0;
         porta::protocol::http::cgi::environment::variable::Which e;
+
+        this->OutLn();
+        this->Out(m_catchEnvironmentFileLabel.Chars());
+        this->Out(": ");
+        this->OutLn(m_catchEnvironmentFileName.Chars());
+        this->OutLn();
         for (e = porta::protocol::http::cgi::environment::variable::First;
              e <= porta::protocol::http::cgi::environment::variable::Last; ++e) {
             const char* name = porta::protocol::http::cgi::environment::variable::Name::OfWhich(e);
@@ -97,12 +134,56 @@ protected:
         }
         return err;
     }
-    virtual int BeforeRunCgi(int argc, char** argv, char** env) {
+    virtual int OutArguments(int argc, char** argv, char** env) {
         int err = 0;
+        const char* chars = 0;
+        this->OutLn();
+        this->Out(m_catchArgumentsFileLabel.Chars());
+        this->Out(": ");
+        this->OutLn(m_catchArgumentsFileName.Chars());
+        this->OutLn();
+        for (int a = 0; a < argc; ++a) {
+            this->Out("[");
+            this->Out(int_to_string(a).chars());
+            this->Out("] = ");
+            if ((chars = argv[a])) {
+                this->Out("\"");
+                this->Out(chars);
+                this->OutLn("\"");
+            } else {
+                this->OutLn("0");
+            }
+        }
         return err;
     }
-    virtual int AfterRunCgi(int argc, char** argv, char** env) {
+    virtual int OutInput(int argc, char** argv, char** env) {
         int err = 0;
+        this->OutLn();
+        this->Out(m_catchInputFileLabel.Chars());
+        this->Out(": ");
+        this->OutLn(m_catchInputFileName.Chars());
+        this->OutLn();
+        return err;
+    }
+    virtual int OutForm(int argc, char** argv, char** env) {
+        int err = 0;
+        porta::protocol::http::form::Fields::const_iterator e, i;
+
+        this->OutLn();
+        this->Out(m_catchFormFileLabel.Chars());
+        this->Out(": ");
+        this->OutLn(m_catchFormFileName.Chars());
+        this->OutLn();
+        for (e = m_form.end(), i = m_form.begin(); i != e; ++i) {
+            const porta::protocol::http::form::Field& f = (*i);
+            const char *name = 0, *value = 0;
+            if ((name = f.Name().HasChars()) && (value = f.Value().Chars())) {
+                this->Out(name);
+                this->Out(" = \"");
+                this->Out(value);
+                this->OutLn("\"");
+            }
+        }
         return err;
     }
 
@@ -129,7 +210,7 @@ protected:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    virtual int CgiMain(int argc, char** argv, char** env) {
+    virtual int CgiFormRun(int argc, char** argv, char** env) {
         int err = 0, err2 = 0;
         if (!(err = BeforeReadForm(argc, argv, env))) {
             if (!(err = ReadForm(argc, argv, env))) {
@@ -147,7 +228,7 @@ protected:
         }
         return err;
     }
-    virtual int ConsoleMain(int argc, char_t** argv, char_t** env) {
+    virtual int ConsoleFormRun(int argc, char_t** argv, char_t** env) {
         int err = 0, err2 = 0;
         if (!(err = BeforeReadForm(argc, argv, env))) {
             if (!(err = ReadForm(argc, argv, env))) {
@@ -172,7 +253,14 @@ protected:
         int err = 0, err2 = 0;
         if (!(err = BeforeGetEnvironment(argc, argv, env))) {
             if (!(err = GetEnvironment(argc, argv, env))) {
-                if (!(err = CgiMain(argc, argv, env))) {
+                if (!(err = GetArgv(argc, argv, env))) {
+                    if (!(err = BeforeGetContent(argc, argv, env))) {
+                        if (!(err = CgiFormRun(argc, argv, env))) {
+                        }
+                        if ((err2 = AfterGetContent(argc, argv, env)) && (!err)) {
+                            err = err2;
+                        }
+                    }
                 }
             }
             if ((err2 = AfterGetEnvironment(argc, argv, env)) && (!err)) {
@@ -198,16 +286,13 @@ protected:
         int err = 0, err2 = 0;
         if (!(err = BeforeReadEnvironment(argc, argv, env))) {
             if (!(err = ReadEnvironment(argc, argv, env))) {
-                if (!(err = BeforeReadContent(argc, argv, env))) {
-                    if (!(err = BeginReadContent(argc, argv, env))) {
-                        if (!(err = ConsoleMain(argc, argv, env))) {
+                if (!(err = ReadArgv(argc, argv, env))) {
+                    if (!(err = BeforeReadContent(argc, argv, env))) {
+                        if (!(err = ConsoleFormRun(argc, argv, env))) {
                         }
-                        if ((err2 = EndReadContent(argc, argv, env)) && (!err)) {
+                        if ((err2 = AfterReadContent(argc, argv, env)) && (!err)) {
                             err = err2;
                         }
-                    }
-                    if ((err2 = AfterReadContent(argc, argv, env)) && (!err)) {
-                        err = err2;
                     }
                 }
             }
@@ -223,6 +308,19 @@ protected:
     }
     virtual int AfterConsoleRun(int argc, char** argv, char** env) {
         int err = 0;
+        return err;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int GetArgv(int argc, char** argv, char** env) {
+        int err = 0;
+        m_arguments.Assign(argc, argv);
+        return err;
+    }
+    virtual int ReadArgv(int argc, char** argv, char** env) {
+        int err = 0;
+        m_arguments.Assign(argc, argv);
         return err;
     }
 
@@ -247,7 +345,7 @@ protected:
     virtual int ReadEnvironment(int argc, char** argv, char** env) {
         int err = 0;
         const char* chars = 0;
-        if ((chars = m_catchEnvFileName.HasChars())) {
+        if ((chars = m_catchEnvironmentFileName.HasChars())) {
             io::crt::file::Reader reader;
             if ((reader.Open(chars))) {
                 if (0 < (reader.ReadLn())) {
@@ -270,20 +368,31 @@ protected:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    virtual int BeginReadContent(int argc, char** argv, char** env) {
+    virtual int BeforeGetContent(int argc, char** argv, char** env) {
         int err = 0;
+        m_contentFile.Attach(this->StdIn());
         return err;
     }
-    virtual int EndReadContent(int argc, char** argv, char** env) {
+    virtual int AfterGetContent(int argc, char** argv, char** env) {
         int err = 0;
+        m_contentFile.Detach();
         return err;
     }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     virtual int BeforeReadContent(int argc, char** argv, char** env) {
         int err = 0;
+        if ((m_contentFile.Open(m_catchInputFileName.Chars()))) {
+            if (0 >= (m_contentFile.ReadLn())) {
+                m_contentFile.Close();
+            }
+        }
         return err;
     }
     virtual int AfterReadContent(int argc, char** argv, char** env) {
         int err = 0;
+        m_contentFile.Close();
         return err;
     }
 
@@ -291,6 +400,11 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int ReadForm(int argc, char** argv, char** env) {
         int err = 0;
+        m_form.clear();
+        if (!(err = ReadQueryFormData(argc, argv, env))) {
+            if (!(err = ReadFormData(argc, argv, env))) {
+            }
+        }
         return err;
     }
     virtual int BeforeReadForm(int argc, char** argv, char** env) {
@@ -305,28 +419,71 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
     virtual int ReadQueryFormData(int argc, char** argv, char** env) {
+        protocol::http::cgi::environment::variable::Value& queryString
+        = m_environment[protocol::http::cgi::environment::variable::QUERY_STRING];
+        const char* chars = 0;
+        size_t length = 0;
         int err = 0;
+        if (!(chars)) {
+            chars = queryString.HasValue(length);
+        }
+        if ((chars)) {
+            io::CharsReader charsReader(chars, length);
+            protocol::http::url::encoded::Reader encodedReader(charsReader);
+            protocol::http::form::Reader formReader(m_form);
+            formReader.ReadMore(encodedReader);
+        }
         return err;
     }
     virtual int ReadFormData(int argc, char** argv, char** env) {
+        protocol::http::cgi::environment::variable::Value& contentLength
+        = m_environment[protocol::http::cgi::environment::variable::CONTENT_LENGTH];
+        const char* chars = 0;
+        size_t length = 0;
         int err = 0;
+        if ((chars = contentLength.HasValue(length))) {
+            if (0 < (length = Chars::ToUnsigned(chars, length))) {
+                err = ReadFormData(length, argc, argv, env);
+            }
+        }
         return err;
     }
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
     virtual int ReadFormData
-    (size_t content_length, int argc, char** argv, char** env) {
+    (size_t contentLength, int argc, char** argv, char** env) {
+        protocol::http::cgi::environment::variable::Value& contentType
+        = m_environment[protocol::http::cgi::environment::variable::CONTENT_TYPE];
+        const char* chars = 0;
+        size_t length = 0;
         int err = 0;
+
+        if ((chars = contentType.HasValue(length))) {
+            protocol::http::content::type::Which which
+            = protocol::http::content::type::Name::WhichOf(chars);
+
+            switch(which) {
+            case protocol::http::content::type::UrlEncodedFormData:
+                CRONO_LOG_DEBUG("ReadUrlencodedFormData(contentLength = " << contentLength << ", argc, argv, env)...");
+                err = ReadUrlencodedFormData(contentLength, argc, argv, env);
+                break;
+
+            case protocol::http::content::type::MultipartFormData:
+                CRONO_LOG_DEBUG("ReadMutipartFormData(contentLength = " << contentLength << ", argc, argv, env)...");
+                err = ReadMultipartFormData(contentLength, argc, argv, env);
+                break;
+            }
+        }
         return err;
     }
     virtual int BeforeReadFormData
-    (size_t content_length, int argc, char** argv, char** env) {
+    (size_t contentLength, int argc, char** argv, char** env) {
         int err = 0;
         return err;
     }
     virtual int AfterReadFormData
-    (size_t content_length, int argc, char** argv, char** env) {
+    (size_t contentLength, int argc, char** argv, char** env) {
         int err = 0;
         return err;
     }
@@ -334,12 +491,18 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
     virtual int ReadUrlencodedFormData
-    (size_t content_length, int argc, char** argv, char** env) {
+    (size_t contentLength, int argc, char** argv, char** env) {
+        porta::protocol::http::content::Reader charsReader(*this, m_contentFile, contentLength);
+        protocol::http::url::encoded::Reader encodedReader(charsReader);
+        protocol::http::form::Reader formReader(m_form);
         int err = 0;
+        this->OnBeginReadContent(contentLength);
+        formReader.ReadMore(encodedReader);
+        this->OnEndReadContent(contentLength);
         return err;
     }
     virtual int ReadMultipartFormData
-    (size_t content_length, int argc, char_t** argv, char_t** env) {
+    (size_t contentLength, int argc, char_t** argv, char_t** env) {
         int err = 0;
         return err;
     }
@@ -405,13 +568,16 @@ protected:
     ///////////////////////////////////////////////////////////////////////
 protected:
     const char m_cr, m_lf;
-    CharString m_catchArgvFileLabel, m_catchArgvFileName,
-               m_catchEnvFileLabel, m_catchEnvFileName,
-               m_catchStdinFileLabel, m_catchStdinFileName;
+    CharString m_catchArgumentsFileLabel, m_catchArgumentsFileName,
+               m_catchEnvironmentFileLabel, m_catchEnvironmentFileName,
+               m_catchInputFileLabel, m_catchInputFileName,
+               m_catchFormFileLabel, m_catchFormFileName;
     porta::protocol::http::message::header::field::Line m_contentType;
     const char* m_outContentType;
-    size_t m_contentLength;
+    porta::protocol::http::form::Fields m_form;
     porta::protocol::http::cgi::environment::variables::Values m_environment;
+    porta::console::Argv m_arguments;
+    porta::io::crt::file::Reader m_contentFile;
 };
 typedef MainT<> Main;
 

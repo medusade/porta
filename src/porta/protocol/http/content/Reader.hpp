@@ -16,42 +16,37 @@
 ///   File: Reader.hpp
 ///
 /// Author: $author$
-///   Date: 4/21/2017
+///   Date: 4/26/2017
 ///////////////////////////////////////////////////////////////////////
-#ifndef _PORTA_IO_READER_HPP
-#define _PORTA_IO_READER_HPP
+#ifndef _PORTA_PROTOCOL_HTTP_CONTENT_READER_HPP
+#define _PORTA_PROTOCOL_HTTP_CONTENT_READER_HPP
 
-#include "porta/base/Base.hpp"
-#include "patrona/cpp/xos/base/Attached.hpp"
-#include "patrona/cpp/xos/io/Reader.hpp"
+#include "porta/protocol/http/content/ReadObserver.hpp"
+#include "porta/io/Reader.hpp"
 
 namespace porta {
-namespace io {
+namespace protocol {
+namespace http {
+namespace content {
 
-typedef patrona::io::ReaderTImplements CharReaderImplements;
-typedef patrona::io::CharReader CharReader;
-
-typedef patrona::io::CharReader::sized_t CharsReaderTSized;
-typedef const CharsReaderTSized* CharsReaderTAttachedTo;
-
-typedef patrona::AttacherT
-<CharsReaderTAttachedTo, CharsReaderTSized, 0,
- CharReaderImplements> CharsReaderTImplements;
-
-typedef patrona::AttachedT
-<CharsReaderTAttachedTo, CharsReaderTSized, 0,
- CharsReaderTImplements, CharReader> CharsReaderTExtends;
+typedef ReadObserver ReaderTObserver;
+typedef io::CharReaderImplements ReaderTImplements;
+typedef io::CharReader ReaderTExtends;
 ///////////////////////////////////////////////////////////////////////
-///  Class: CharsReaderT
+///  Class: ReaderT
 ///////////////////////////////////////////////////////////////////////
 template
-<class TImplements = CharsReaderTImplements, class TExtends = CharsReaderTExtends>
+<class TReadObserver = ReaderTObserver,
+ class TImplements = ReaderTImplements, class TExtends = ReaderTExtends>
 
-class _EXPORT_CLASS CharsReaderT: virtual public TImplements, public TExtends {
+class _EXPORT_CLASS ReaderT:
+virtual public TReadObserver, virtual public TImplements, public TExtends {
 public:
     typedef TImplements Implements;
     typedef TExtends Extends;
 
+    typedef Extends reader_t;
+    typedef TReadObserver observer_t;
     typedef typename Extends::what_t what_t;
     typedef typename Extends::sized_t sized_t;
     typedef typename Extends::sized_t end_t;
@@ -59,29 +54,32 @@ public:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    CharsReaderT(const sized_t* attached, size_t length)
-    : Extends(attached), length_(length), tell_(0) {
+    ReaderT(observer_t& observer, reader_t& reader, size_t length)
+    : observer_(observer), reader_(reader), length_(length), tell_(0) {
     }
-    virtual ~CharsReaderT() {
+    ReaderT(reader_t& reader, size_t length)
+    : observer_(*this), reader_(reader), length_(length), tell_(0) {
+    }
+    virtual ~ReaderT() {
     }
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
     virtual ssize_t Read(what_t* what, size_t size) {
-        const sized_t* from = 0;
-
-        if ((from = this->AttachedTo())) {
-            sized_t* to = 0;
-
-            if ((to = ((sized_t*)what)) && (size)) {
-                if (length_ < (tell_ + size)) {
-                    size = length_ - tell_;
+        sized_t* sized = 0;
+        if ((sized = ((sized_t*)what)) && (size)) {
+            if (length_ < (tell_ + size)) {
+                size = tell_ - length_;
+            }
+            if ((size)) {
+                ssize_t count = 0;
+                if (0 < (count = reader_.Read(what, size))) {
+                    observer_.OnReadContent(what, sized, size);
+                    tell_ += count;
+                } else {
+                    CRONO_LOG_ERROR("...failed " << count << " on reader_.Read(what, size = " << size << ")");
                 }
-                if (size) {
-                    chars_t::copy(to, from + tell_, size);
-                    tell_ += size;
-                    return size;
-                }
+                return count;
             }
         }
         return 0;
@@ -90,11 +88,15 @@ public:
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
 protected:
+    observer_t& observer_;
+    reader_t& reader_;
     size_t length_, tell_;
 };
-typedef CharsReaderT<> CharsReader;
+typedef ReaderT<> Reader;
 
-} // namespace io
+} // namespace content 
+} // namespace http 
+} // namespace protocol 
 } // namespace porta 
 
-#endif // _PORTA_IO_READER_HPP 
+#endif // _PORTA_PROTOCOL_HTTP_CONTENT_READER_HPP 

@@ -13,27 +13,27 @@
 /// or otherwise) arising in any way out of the use of this software, 
 /// even if advised of the possibility of such damage.
 ///
-///   File: Main.hpp
+///   File: Writer.cpp
 ///
 /// Author: $author$
-///   Date: 4/10/2017
+///   Date: 4/27/2017
 ///////////////////////////////////////////////////////////////////////
-#ifndef _PORTA_CONSOLE_GETOPT_MAIN_HPP
-#define _PORTA_CONSOLE_GETOPT_MAIN_HPP
-
-#include "porta/console/getopt/MainOpt.hpp"
-#include "crono/console/getopt/Main.hpp"
-#include "porta/console/Main.hpp"
+#include "porta/protocol/http/cgi/environment/variables/Writer.hpp"
 
 namespace porta {
-namespace console {
-namespace getopt {
+namespace protocol {
+namespace http {
+namespace cgi {
+namespace environment {
+namespace variables {
 
-typedef ::crono::console::getopt::Main Main;
-typedef ::crono::console::getopt::MainImplements MainImplements;
+///////////////////////////////////////////////////////////////////////
+///  Class: WriterT
+///////////////////////////////////////////////////////////////////////
 
-} // namespace getopt
-} // namespace console 
+} // namespace variables 
+} // namespace environment 
+} // namespace cgi 
+} // namespace http 
+} // namespace protocol 
 } // namespace porta 
-
-#endif // _PORTA_CONSOLE_GETOPT_MAIN_HPP 

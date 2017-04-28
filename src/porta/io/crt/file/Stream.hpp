@@ -20,22 +20,20 @@
 ///////////////////////////////////////////////////////////////////////
 #ifndef _PORTA_IO_CRT_FILE_STREAM_HPP
 #define _PORTA_IO_CRT_FILE_STREAM_HPP
+
 #include "porta/base/Base.hpp"
+#include "patrona/cpp/xos/io/crt/file/Stream.hpp"
 
 namespace porta {
 namespace io {
 namespace crt {
 namespace file {
 
+typedef patrona::io::crt::file::Stream Stream;
 
-
-
-} // namespace file 
+} // namespace file
 } // namespace crt 
 } // namespace io 
 } // namespace porta 
 
-
 #endif // _PORTA_IO_CRT_FILE_STREAM_HPP 
-        
-

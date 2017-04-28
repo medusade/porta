@@ -13,27 +13,22 @@
 /// or otherwise) arising in any way out of the use of this software, 
 /// even if advised of the possibility of such damage.
 ///
-///   File: Main.hpp
+///   File: Reader.hpp
 ///
 /// Author: $author$
-///   Date: 4/10/2017
+///   Date: 4/26/2017
 ///////////////////////////////////////////////////////////////////////
-#ifndef _PORTA_CONSOLE_GETOPT_MAIN_HPP
-#define _PORTA_CONSOLE_GETOPT_MAIN_HPP
+#ifndef _PORTA_IO_CHARS_READER_HPP
+#define _PORTA_IO_CHARS_READER_HPP
 
-#include "porta/console/getopt/MainOpt.hpp"
-#include "crono/console/getopt/Main.hpp"
-#include "porta/console/Main.hpp"
+#include "porta/io/Reader.hpp"
 
 namespace porta {
-namespace console {
-namespace getopt {
+namespace io {
+namespace chars {
 
-typedef ::crono::console::getopt::Main Main;
-typedef ::crono::console::getopt::MainImplements MainImplements;
-
-} // namespace getopt
-} // namespace console 
+} // namespace chars 
+} // namespace io 
 } // namespace porta 
 
-#endif // _PORTA_CONSOLE_GETOPT_MAIN_HPP 
+#endif // _PORTA_IO_CHARS_READER_HPP 

@@ -13,27 +13,24 @@
 /// or otherwise) arising in any way out of the use of this software, 
 /// even if advised of the possibility of such damage.
 ///
-///   File: Main.hpp
+///   File: Writer.hpp
 ///
 /// Author: $author$
-///   Date: 4/10/2017
+///   Date: 4/27/2017
 ///////////////////////////////////////////////////////////////////////
-#ifndef _PORTA_CONSOLE_GETOPT_MAIN_HPP
-#define _PORTA_CONSOLE_GETOPT_MAIN_HPP
+#ifndef _PORTA_IO_WRITER_HPP
+#define _PORTA_IO_WRITER_HPP
 
-#include "porta/console/getopt/MainOpt.hpp"
-#include "crono/console/getopt/Main.hpp"
-#include "porta/console/Main.hpp"
+#include "porta/base/Base.hpp"
+#include "patrona/cpp/xos/io/Writer.hpp"
 
 namespace porta {
-namespace console {
-namespace getopt {
+namespace io {
 
-typedef ::crono::console::getopt::Main Main;
-typedef ::crono::console::getopt::MainImplements MainImplements;
+typedef patrona::io::WriterTImplements CharWriterImplements;
+typedef patrona::io::CharWriter CharWriter;
 
-} // namespace getopt
-} // namespace console 
+} // namespace io
 } // namespace porta 
 
-#endif // _PORTA_CONSOLE_GETOPT_MAIN_HPP 
+#endif // _PORTA_IO_WRITER_HPP 

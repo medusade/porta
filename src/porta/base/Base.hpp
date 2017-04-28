@@ -24,7 +24,9 @@
 #include "nadir/base/chars.hpp"
 #include "nadir/base/array.hpp"
 #include "nadir/base/string.hpp"
+#include "nadir/base/to_string.hpp"
 #include "nadir/base/wrapped.hpp"
+#include "patrona/cpp/xos/base/Chars.hpp"
 #include "crono/io/Logger.hpp"
 
 namespace porta {
@@ -43,6 +45,12 @@ typedef nadir::wchar_string wstring_t;
 typedef nadir::char_array char_array;
 typedef nadir::tchar_array tchar_array;
 typedef nadir::wchar_array wchar_array;
+
+typedef nadir::int_to_string int_to_string;
+
+typedef patrona::Chars Chars;
+typedef patrona::TChars TChars;
+typedef patrona::WChars WChars;
 
 ///////////////////////////////////////////////////////////////////////
 /// Class CharArrayT

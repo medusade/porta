@@ -27,7 +27,15 @@
 namespace porta {
 namespace console {
 
-} // namespace console 
+typedef crono::console::Main Main;
+typedef crono::console::InIOReader InIOReader;
+typedef crono::console::OutIOWriter OutIOWriter;
+typedef crono::console::IO IO;
+
+typedef crono::console::Argv Argv;
+typedef crono::console::ArgvWriter ArgvWriter;
+
+} // namespace console
 } // namespace porta 
 
 #endif // _PORTA_CONSOLE_MAIN_HPP 
