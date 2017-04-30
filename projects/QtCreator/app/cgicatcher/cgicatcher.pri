@@ -41,8 +41,12 @@ $${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Attached.hpp \
 $${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Mode.hpp \
 $${PATRONA_SRC}/patrona/cpp/xos/io/os/crt/file/Attached.hpp \
 $${PATRONA_SRC}/patrona/cpp/xos/io/os/Os.hpp \
+$${PATRONA_SRC}/patrona/cpp/xos/io/Writer.hpp \
 $${PATRONA_SRC}/patrona/cpp/xos/base/Chars.hpp \
 $${PATRONA_SRC}/patrona/cpp/xos/base/Base.hpp \
+$${PATRONA_SRC}/patrona/cpp/xos/console/Main.hpp \
+$${PATRONA_SRC}/patrona/cpp/xos/console/IO.hpp \
+$${PATRONA_SRC}/patrona/cpp/xos/console/Argv.hpp \
 
 cgicatcher_SOURCES += \
 $${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Stream.cpp \
@@ -52,6 +56,12 @@ $${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Attached.cpp \
 $${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Mode.cpp \
 $${PATRONA_SRC}/patrona/cpp/xos/io/os/Os.cpp \
 $${PATRONA_SRC}/patrona/cpp/xos/base/Chars.cpp \
+$${PATRONA_SRC}/patrona/cpp/xos/console/IO.cpp \
+$${PATRONA_SRC}/patrona/cpp/xos/console/Argv.cpp \
+
+########################################################################
+cgicatcher_HEADERS += \
+$${CRONO_SRC}/crono/console/Main.hpp \
 
 ########################################################################
 cgicatcher_HEADERS += \
@@ -60,9 +70,11 @@ $${PORTA_SRC}/porta/io/crt/file/Stream.hpp \
 $${PORTA_SRC}/porta/io/crt/file/Writer.hpp \
 $${PORTA_SRC}/porta/io/crt/file/Reader.hpp \
 $${PORTA_SRC}/porta/io/crt/file/Mode.hpp \
+$${PORTA_SRC}/porta/io/Reader.hpp \
 
 ########################################################################
 cgicatcher_HEADERS += \
+$${PORTA_SRC}/porta/protocol/http/cgi/environment/variables/Writer.hpp \
 $${PORTA_SRC}/porta/protocol/http/cgi/environment/variables/Reader.hpp \
 $${PORTA_SRC}/porta/protocol/http/cgi/environment/variables/Values.hpp \
 $${PORTA_SRC}/porta/protocol/http/cgi/environment/variables/Exception.hpp \
@@ -75,11 +87,14 @@ $${PORTA_SRC}/porta/protocol/http/message/header/field/Which.hpp \
 $${PORTA_SRC}/porta/protocol/http/content/type/Name.hpp \
 $${PORTA_SRC}/porta/protocol/http/content/type/Which.hpp \
 $${PORTA_SRC}/porta/protocol/http/url/encoded/Reader.hpp \
+$${PORTA_SRC}/porta/protocol/http/content/Reader.hpp \
+$${PORTA_SRC}/porta/protocol/http/content/ReadObserver.hpp \
 $${PORTA_SRC}/porta/protocol/http/form/Reader.hpp \
 $${PORTA_SRC}/porta/protocol/http/form/Fields.hpp \
 $${PORTA_SRC}/porta/protocol/http/form/Field.hpp \
 
 cgicatcher_SOURCES += \
+$${PORTA_SRC}/porta/protocol/http/content/ReadObserver.cpp \
 $${PORTA_SRC}/porta/protocol/http/form/Reader.cpp \
 $${PORTA_SRC}/porta/protocol/http/form/Fields.cpp \
 $${PORTA_SRC}/porta/protocol/http/form/Field.cpp \
