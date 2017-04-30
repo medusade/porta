@@ -34,6 +34,8 @@
 #include "porta/protocol/http/content/Reader.hpp"
 #include "porta/protocol/http/url/encoded/Reader.hpp"
 #include "porta/protocol/http/form/Reader.hpp"
+#include "porta/protocol/http/form/Fields.hpp"
+#include "porta/protocol/http/form/Field.hpp"
 #include "porta/io/os/crt/file/Attached.hpp"
 #include "porta/io/crt/file/Reader.hpp"
 #include "porta/console/getopt/Main.hpp"
@@ -536,6 +538,27 @@ protected:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
+    virtual const char* SetContentTypeToText() {
+        const char* to = porta::protocol::http::content::type::Name::OfWhich
+          (porta::protocol::http::content::type::Text);
+        return SetContentType(to);
+    }
+    virtual const char* SetContentTypeToHtml() {
+        const char* to = porta::protocol::http::content::type::Name::OfWhich
+          (porta::protocol::http::content::type::Html);
+        return SetContentType(to);
+    }
+    virtual const char* SetContentTypeToXml() {
+        const char* to = porta::protocol::http::content::type::Name::OfWhich
+          (porta::protocol::http::content::type::Xml);
+        return SetContentType(to);
+    }
+    virtual const char* SetContentType(const char* to) {
+        if ((to) && (to[0])) {
+            m_contentType.SetValue(to);
+        }
+        return m_contentType.Value().Chars();
+    }
     virtual const char* OutContentType() {
         if (!(m_outContentType)) {
             size_t length = 0;
@@ -562,6 +585,12 @@ protected:
             }
         }
         return false;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    const char* FindFormValue(const char* name) const {
+        return m_form.FindValue(name);
     }
 
     ///////////////////////////////////////////////////////////////////////
