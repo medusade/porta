@@ -13,28 +13,23 @@
 /// or otherwise) arising in any way out of the use of this software, 
 /// even if advised of the possibility of such damage.
 ///
-///   File: Writer.hpp
+///   File: Writer.cpp
 ///
 /// Author: $author$
-///   Date: 4/14/2017
+///   Date: 5/18/2017
 ///////////////////////////////////////////////////////////////////////
-#ifndef _PORTA_IO_CRT_FILE_WRITER_HPP
-#define _PORTA_IO_CRT_FILE_WRITER_HPP
-
-#include "porta/base/Base.hpp"
-#include "patrona/cpp/xos/io/crt/file/Writer.hpp"
+#include "porta/protocol/http/form/Writer.hpp"
 
 namespace porta {
-namespace io {
-namespace crt {
-namespace file {
+namespace protocol {
+namespace http {
+namespace form {
 
-typedef patrona::io::crt::file::Writer Writer;
-typedef patrona::io::crt::file::CharWriter CharWriter;
+///////////////////////////////////////////////////////////////////////
+///  Class: WriterT
+///////////////////////////////////////////////////////////////////////
 
-} // namespace file
-} // namespace crt 
-} // namespace io 
+} // namespace form 
+} // namespace http 
+} // namespace protocol 
 } // namespace porta 
-
-#endif // _PORTA_IO_CRT_FILE_WRITER_HPP 

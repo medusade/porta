@@ -16,21 +16,20 @@
 ///   File: Writer.hpp
 ///
 /// Author: $author$
-///   Date: 4/27/2017
+///   Date: 5/18/2017
 ///////////////////////////////////////////////////////////////////////
-#ifndef _PORTA_PROTOCOL_HTTP_CGI_ENVIRONMENT_VARIABLES_WRITER_HPP
-#define _PORTA_PROTOCOL_HTTP_CGI_ENVIRONMENT_VARIABLES_WRITER_HPP
+#ifndef _PORTA_PROTOCOL_HTTP_FORM_WRITER_HPP
+#define _PORTA_PROTOCOL_HTTP_FORM_WRITER_HPP
 
-#include "porta/protocol/http/cgi/environment/variables/Values.hpp"
-#include "porta/protocol/http/cgi/environment/variable/Value.hpp"
+#include "porta/protocol/http/form/Fields.hpp"
+#include "porta/protocol/http/form/Field.hpp"
 #include "porta/io/Writer.hpp"
+#include "crono/io/Logger.hpp"
 
 namespace porta {
 namespace protocol {
 namespace http {
-namespace cgi {
-namespace environment {
-namespace variables {
+namespace form {
 
 typedef ImplementBase WriterTImplements;
 typedef Base WriterTExtends;
@@ -44,68 +43,80 @@ class _EXPORT_CLASS WriterT: virtual public TImplements, public TExtends {
 public:
     typedef TImplements Implements;
     typedef TExtends Extends;
+    typedef WriterT Derives;
+
+    typedef Fields fields_t;
+    typedef Field field_t;
+    typedef Field::string_t string_t;
+    typedef Field::char_t char_t;
+    typedef io::CharWriter writer_t;
+    typedef io::CharWriter::what_t what_t;
+    typedef io::CharWriter::sized_t sized_t;
+
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    WriterT(io::CharWriter& writer): m_writer(writer) {
+    WriterT(writer_t& writer)
+    : m_writer(writer),
+      m_separator("="), m_end("\r\n") {
     }
     virtual ~WriterT() {
     }
+
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    virtual ssize_t Write(Values& values) {
-        static const char eq_ = '=';
-        static const char cr_ = '\r';
-        static const char lf_ = '\n';
+    virtual ssize_t Write(const fields_t& fields) {
         ssize_t count = 0, amount = 0;
-        porta::protocol::http::cgi::environment::variable::Which e;
-        for (e = porta::protocol::http::cgi::environment::variable::First;
-             e <= porta::protocol::http::cgi::environment::variable::Last; ++e) {
-            const char* name = porta::protocol::http::cgi::environment::variable::Name::OfWhich(e);
-            if (name) {
-                const char* value = values[e];
-                if (0 < (amount = m_writer.Write(name))) {
+        fields_t::const_iterator e, i;
+
+        for (e = fields.end(), i = fields.begin(); i != e; ++i) {
+            const field_t& f = (*i);
+            const char_t *name = 0, *value = 0;
+            size_t name_length = 0, value_length = 0;
+
+            if ((name = f.Name().HasChars(name_length))
+                && (value = f.Value().Chars(value_length))) {
+
+                if (0 < (amount = m_writer.Write(name, name_length))) {
                     count += amount;
-                    if (0 < (amount = m_writer.Write(&eq_, 1))) {
+
+                    if (0 < (amount = m_writer.Write
+                        (m_separator.Chars(), m_separator.Length()))) {
                         count += amount;
-                        if (value) {
-                            if (0 <= (amount = m_writer.Write(value))) {
-                                count += amount;
-                            } else {
-                                return amount;
-                            }
-                        }
-                        if (0 < (amount = m_writer.Write(&cr_, 1))) {
+
+                        if (0 <= (amount = m_writer.Write(value, value_length))) {
                             count += amount;
-                            if (0 < (amount = m_writer.Write(&lf_, 1))) {
+
+                            if (0 < (amount = m_writer.Write
+                                (m_end.Chars(), m_end.Length()))) {
                                 count += amount;
                             } else {
-                                return amount;
+                                count = amount;
                             }
                         } else {
-                            return amount;
+                            count = amount;
                         }
                     } else {
-                        return amount;
+                        count = amount;
                     }
                 } else {
-                    return amount;
+                    count = amount;
                 }
             }
         }
         return count;
     }
+
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
 protected:
-    io::CharWriter& m_writer;
+    writer_t& m_writer;
+    string_t m_separator, m_end;
 };
 typedef WriterT<> Writer;
 
-} // namespace variables 
-} // namespace environment 
-} // namespace cgi 
+} // namespace form 
 } // namespace http 
 } // namespace protocol 
 } // namespace porta 
 
-#endif // _PORTA_PROTOCOL_HTTP_CGI_ENVIRONMENT_VARIABLES_WRITER_HPP 
+#endif // _PORTA_PROTOCOL_HTTP_FORM_WRITER_HPP 

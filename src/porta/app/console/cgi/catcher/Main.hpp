@@ -23,6 +23,7 @@
 
 #include "porta/app/console/cgi/Main.hpp"
 #include "porta/protocol/http/cgi/environment/variables/Writer.hpp"
+#include "porta/protocol/http/form/Writer.hpp"
 #include "porta/io/crt/file/Writer.hpp"
 
 namespace porta {
@@ -102,25 +103,53 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int WriteEnvironment(int argc, char** argv, char** env) {
         int err = 0;
-        if (!(err = WriteEnvironment(m_out, argc, argv, env))) {
+        const char *name = 0, *pattern = 0;
+        if ((name = this->m_catchEnvironmentFileName.Chars())
+             && (pattern = this->m_catchEnvironmentFileLabel.Chars())) {
+            if ((m_file.OpenSafe(name, pattern))) {
+                if (!(err = WriteEnvironment(m_file, argc, argv, env))) {
+                }
+                m_file.Close();
+            }
         }
         return err;
     }
     virtual int WriteArguments(int argc, char** argv, char** env) {
         int err = 0;
-        if (!(err = WriteArguments(m_out, argc, argv, env))) {
+        const char *name = 0, *pattern = 0;
+        if ((name = this->m_catchArgumentsFileName.Chars())
+             && (pattern = this->m_catchArgumentsFileLabel.Chars())) {
+            if ((m_file.OpenSafe(name, pattern))) {
+                if (!(err = WriteArguments(m_file, argc, argv, env))) {
+                }
+                m_file.Close();
+            }
         }
         return err;
     }
     virtual int WriteForm(int argc, char** argv, char** env) {
         int err = 0;
-        if (!(err = WriteForm(m_out, argc, argv, env))) {
+        const char *name = 0, *pattern = 0;
+        if ((name = this->m_catchFormFileName.Chars())
+             && (pattern = this->m_catchFormFileLabel.Chars())) {
+            if ((m_file.OpenSafe(name, pattern))) {
+                if (!(err = WriteForm(m_file, argc, argv, env))) {
+                }
+                m_file.Close();
+            }
         }
         return err;
     }
     virtual int WriteInput(int argc, char** argv, char** env) {
         int err = 0;
-        if (!(err = WriteInput(m_out, argc, argv, env))) {
+        const char *name = 0, *pattern = 0;
+        if ((name = this->m_catchInputFileName.Chars())
+             && (pattern = this->m_catchInputFileLabel.Chars())) {
+            if ((m_file.OpenSafe(name, pattern))) {
+                if (!(err = WriteInput(m_file, argc, argv, env))) {
+                }
+                m_file.Close();
+            }
         }
         return err;
     }
@@ -149,8 +178,8 @@ protected:
     (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
         int err = 0;
         if (0 <  (writer.WriteLn(this->m_catchFormFileLabel.Chars()))) {
-            //protocol::http::cgi::environment::variables::Writer fWriter(writer);
-            //fWriter.Write(this->m_environment);
+            protocol::http::form::Writer fWriter(writer);
+            fWriter.Write(this->m_form);
         }
         return err;
     }
@@ -158,8 +187,6 @@ protected:
     (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
         int err = 0;
         if (0 <  (writer.WriteLn(this->m_catchInputFileLabel.Chars()))) {
-            //protocol::http::cgi::environment::variables::Writer iWriter(writer);
-            //iWriter.Write(this->m_environment);
             writer.Write(m_content.elements(), m_content.length());
         }
         return err;
@@ -182,7 +209,7 @@ protected:
     ///////////////////////////////////////////////////////////////////////
 protected:
     porta::console::OutIOWriter m_out;
-    porta::io::crt::file::Writer m_file;
+    porta::io::crt::file::CharWriter m_file;
     CharArray m_content;
 };
 typedef MainT<> Main;
