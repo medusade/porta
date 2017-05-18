@@ -50,14 +50,15 @@ $${PATRONA_SRC}/patrona/cpp/xos/console/Argv.hpp \
 
 cgicatcher_SOURCES += \
 $${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Stream.cpp \
-$${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Writer.cpp \
-$${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Reader.cpp \
 $${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Attached.cpp \
 $${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Mode.cpp \
 $${PATRONA_SRC}/patrona/cpp/xos/io/os/Os.cpp \
 $${PATRONA_SRC}/patrona/cpp/xos/base/Chars.cpp \
 $${PATRONA_SRC}/patrona/cpp/xos/console/IO.cpp \
 $${PATRONA_SRC}/patrona/cpp/xos/console/Argv.cpp \
+
+#$${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Writer.cpp \
+#$${PATRONA_SRC}/patrona/cpp/xos/io/crt/file/Reader.cpp \
 
 ########################################################################
 cgicatcher_HEADERS += \
@@ -89,12 +90,14 @@ $${PORTA_SRC}/porta/protocol/http/content/type/Which.hpp \
 $${PORTA_SRC}/porta/protocol/http/url/encoded/Reader.hpp \
 $${PORTA_SRC}/porta/protocol/http/content/Reader.hpp \
 $${PORTA_SRC}/porta/protocol/http/content/ReadObserver.hpp \
+$${PORTA_SRC}/porta/protocol/http/form/Writer.hpp \
 $${PORTA_SRC}/porta/protocol/http/form/Reader.hpp \
 $${PORTA_SRC}/porta/protocol/http/form/Fields.hpp \
 $${PORTA_SRC}/porta/protocol/http/form/Field.hpp \
 
 cgicatcher_SOURCES += \
 $${PORTA_SRC}/porta/protocol/http/content/ReadObserver.cpp \
+$${PORTA_SRC}/porta/protocol/http/form/Writer.cpp \
 $${PORTA_SRC}/porta/protocol/http/form/Reader.cpp \
 $${PORTA_SRC}/porta/protocol/http/form/Fields.cpp \
 $${PORTA_SRC}/porta/protocol/http/form/Field.cpp \
