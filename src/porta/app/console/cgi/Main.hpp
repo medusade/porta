@@ -21,6 +21,7 @@
 #ifndef _PORTA_APP_CONSOLE_CGI_MAIN_HPP
 #define _PORTA_APP_CONSOLE_CGI_MAIN_HPP
 
+#include "porta/protocol/http/cgi/environment/variables/Writer.hpp"
 #include "porta/protocol/http/cgi/environment/variables/Reader.hpp"
 #include "porta/protocol/http/cgi/environment/variables/Values.hpp"
 #include "porta/protocol/http/cgi/environment/variable/Value.hpp"
@@ -33,10 +34,12 @@
 #include "porta/protocol/http/content/type/Which.hpp"
 #include "porta/protocol/http/content/Reader.hpp"
 #include "porta/protocol/http/url/encoded/Reader.hpp"
+#include "porta/protocol/http/form/Writer.hpp"
 #include "porta/protocol/http/form/Reader.hpp"
 #include "porta/protocol/http/form/Fields.hpp"
 #include "porta/protocol/http/form/Field.hpp"
 #include "porta/io/os/crt/file/Attached.hpp"
+#include "porta/io/crt/file/Writer.hpp"
 #include "porta/io/crt/file/Reader.hpp"
 #include "porta/console/getopt/Main.hpp"
 
@@ -77,7 +80,8 @@ public:
       (porta::protocol::http::message::header::field::ContentType,
        porta::protocol::http::content::type::Name::OfWhich
        (porta::protocol::http::content::type::Text)),
-      m_outContentType(0) {
+      m_outContentType(0),
+      m_outWriter(*this)  {
     }
     virtual ~MainT() {
     }
@@ -185,6 +189,99 @@ protected:
                 this->Out(value);
                 this->OutLn("\"");
             }
+        }
+        return err;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int WriteEnvironment(int argc, char** argv, char** env) {
+        int err = 0;
+        const char *name = 0, *pattern = 0;
+        if ((name = this->m_catchEnvironmentFileName.Chars())
+             && (pattern = this->m_catchEnvironmentFileLabel.Chars())) {
+            if ((this->FileWriter().OpenSafe(name, pattern))) {
+                if (!(err = WriteEnvironment(this->FileWriter(), argc, argv, env))) {
+                }
+                this->FileWriter().Close();
+            }
+        }
+        return err;
+    }
+    virtual int WriteArguments(int argc, char** argv, char** env) {
+        int err = 0;
+        const char *name = 0, *pattern = 0;
+        if ((name = this->m_catchArgumentsFileName.Chars())
+             && (pattern = this->m_catchArgumentsFileLabel.Chars())) {
+            if ((this->FileWriter().OpenSafe(name, pattern))) {
+                if (!(err = WriteArguments(this->FileWriter(), argc, argv, env))) {
+                }
+                this->FileWriter().Close();
+            }
+        }
+        return err;
+    }
+    virtual int WriteForm(int argc, char** argv, char** env) {
+        int err = 0;
+        const char *name = 0, *pattern = 0;
+        if ((name = this->m_catchFormFileName.Chars())
+             && (pattern = this->m_catchFormFileLabel.Chars())) {
+            if ((this->FileWriter().OpenSafe(name, pattern))) {
+                if (!(err = WriteForm(this->FileWriter(), argc, argv, env))) {
+                }
+                this->FileWriter().Close();
+            }
+        }
+        return err;
+    }
+    virtual int WriteInput(int argc, char** argv, char** env) {
+        int err = 0;
+        const char *name = 0, *pattern = 0;
+        if ((name = this->m_catchInputFileName.Chars())
+             && (pattern = this->m_catchInputFileLabel.Chars())) {
+            if ((this->FileWriter().OpenSafe(name, pattern))) {
+                if (!(err = WriteInput(this->FileWriter(), argc, argv, env))) {
+                }
+                this->FileWriter().Close();
+            }
+        }
+        return err;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int WriteEnvironment
+    (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        if (0 <  (writer.WriteLn(this->m_catchEnvironmentFileLabel.Chars()))) {
+            protocol::http::cgi::environment::variables::Writer eWriter(writer);
+            eWriter.Write(this->m_environment);
+        }
+        return err;
+    }
+    virtual int WriteArguments
+    (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        if (0 <  (writer.WriteLn(this->m_catchArgumentsFileLabel.Chars()))) {
+            porta::console::ArgvWriter aWriter(writer);
+            aWriter.Write(this->m_arguments);
+        }
+        return err;
+    }
+    virtual int WriteForm
+    (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        if (0 <  (writer.WriteLn(this->m_catchFormFileLabel.Chars()))) {
+            protocol::http::form::Writer fWriter(writer);
+            fWriter.Write(this->m_form);
+        }
+        return err;
+    }
+    virtual int WriteInput
+    (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        if (0 <  (writer.WriteLn(this->m_catchInputFileLabel.Chars()))) {
+            writer.Write(this->Content().elements(), this->Content().length());
         }
         return err;
     }
@@ -372,12 +469,12 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int BeforeGetContent(int argc, char** argv, char** env) {
         int err = 0;
-        m_contentFile.Attach(this->StdIn());
+        m_fileReader.Attach(this->StdIn());
         return err;
     }
     virtual int AfterGetContent(int argc, char** argv, char** env) {
         int err = 0;
-        m_contentFile.Detach();
+        m_fileReader.Detach();
         return err;
     }
 
@@ -385,16 +482,16 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int BeforeReadContent(int argc, char** argv, char** env) {
         int err = 0;
-        if ((m_contentFile.Open(m_catchInputFileName.Chars()))) {
-            if (0 >= (m_contentFile.ReadLn())) {
-                m_contentFile.Close();
+        if ((m_fileReader.Open(m_catchInputFileName.Chars()))) {
+            if (0 >= (m_fileReader.ReadLn())) {
+                m_fileReader.Close();
             }
         }
         return err;
     }
     virtual int AfterReadContent(int argc, char** argv, char** env) {
         int err = 0;
-        m_contentFile.Close();
+        m_fileReader.Close();
         return err;
     }
 
@@ -494,7 +591,7 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int ReadUrlencodedFormData
     (size_t contentLength, int argc, char** argv, char** env) {
-        porta::protocol::http::content::Reader charsReader(*this, m_contentFile, contentLength);
+        porta::protocol::http::content::Reader charsReader(*this, m_fileReader, contentLength);
         protocol::http::url::encoded::Reader encodedReader(charsReader);
         protocol::http::form::Reader formReader(m_form);
         int err = 0;
@@ -595,6 +692,21 @@ protected:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
+    virtual porta::console::OutIOWriter& OutWriter() const {
+        return (porta::console::OutIOWriter&)m_outWriter;
+    }
+    virtual porta::io::crt::file::CharWriter& FileWriter() const {
+        return (porta::io::crt::file::CharWriter&)m_fileWriter;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual CharArray& Content() const {
+        return (CharArray&)m_content;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
 protected:
     const char m_cr, m_lf;
     CharString m_catchArgumentsFileLabel, m_catchArgumentsFileName,
@@ -603,10 +715,13 @@ protected:
                m_catchFormFileLabel, m_catchFormFileName;
     porta::protocol::http::message::header::field::Line m_contentType;
     const char* m_outContentType;
+    porta::console::OutIOWriter m_outWriter;
+    porta::io::crt::file::CharWriter m_fileWriter;
+    porta::io::crt::file::Reader m_fileReader;
     porta::protocol::http::form::Fields m_form;
     porta::protocol::http::cgi::environment::variables::Values m_environment;
     porta::console::Argv m_arguments;
-    porta::io::crt::file::Reader m_contentFile;
+    CharArray m_content;
 };
 typedef MainT<> Main;
 

@@ -22,9 +22,6 @@
 #define _PORTA_APP_CONSOLE_CGI_CATCHER_MAIN_HPP
 
 #include "porta/app/console/cgi/Main.hpp"
-#include "porta/protocol/http/cgi/environment/variables/Writer.hpp"
-#include "porta/protocol/http/form/Writer.hpp"
-#include "porta/io/crt/file/Writer.hpp"
 
 namespace porta {
 namespace app {
@@ -47,9 +44,10 @@ public:
     typedef TExtends Extends;
     typedef typename TContentReadObserver::sized_t sized_t;
     typedef typename TContentReadObserver::what_t what_t;
+
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    MainT(): m_out(*this) {
+    MainT() {
     }
     virtual ~MainT() {
     }
@@ -88,10 +86,10 @@ protected:
     }
     virtual int AfterRunConsole(int argc, char** argv, char** env) {
         int err = 0;
-        if (!(err = this->WriteForm(m_out, argc, argv, env))) {
-            if (!(err = this->WriteEnvironment(m_out, argc, argv, env))) {
-                if (!(err = this->WriteArguments(m_out, argc, argv, env))) {
-                    if (!(err = this->WriteInput(m_out, argc, argv, env))) {
+        if (!(err = this->WriteForm(this->OutWriter(), argc, argv, env))) {
+            if (!(err = this->WriteEnvironment(this->OutWriter(), argc, argv, env))) {
+                if (!(err = this->WriteArguments(this->OutWriter(), argc, argv, env))) {
+                    if (!(err = this->WriteInput(this->OutWriter(), argc, argv, env))) {
                     }
                 }
             }
@@ -101,116 +99,17 @@ protected:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    virtual int WriteEnvironment(int argc, char** argv, char** env) {
-        int err = 0;
-        const char *name = 0, *pattern = 0;
-        if ((name = this->m_catchEnvironmentFileName.Chars())
-             && (pattern = this->m_catchEnvironmentFileLabel.Chars())) {
-            if ((m_file.OpenSafe(name, pattern))) {
-                if (!(err = WriteEnvironment(m_file, argc, argv, env))) {
-                }
-                m_file.Close();
-            }
-        }
-        return err;
-    }
-    virtual int WriteArguments(int argc, char** argv, char** env) {
-        int err = 0;
-        const char *name = 0, *pattern = 0;
-        if ((name = this->m_catchArgumentsFileName.Chars())
-             && (pattern = this->m_catchArgumentsFileLabel.Chars())) {
-            if ((m_file.OpenSafe(name, pattern))) {
-                if (!(err = WriteArguments(m_file, argc, argv, env))) {
-                }
-                m_file.Close();
-            }
-        }
-        return err;
-    }
-    virtual int WriteForm(int argc, char** argv, char** env) {
-        int err = 0;
-        const char *name = 0, *pattern = 0;
-        if ((name = this->m_catchFormFileName.Chars())
-             && (pattern = this->m_catchFormFileLabel.Chars())) {
-            if ((m_file.OpenSafe(name, pattern))) {
-                if (!(err = WriteForm(m_file, argc, argv, env))) {
-                }
-                m_file.Close();
-            }
-        }
-        return err;
-    }
-    virtual int WriteInput(int argc, char** argv, char** env) {
-        int err = 0;
-        const char *name = 0, *pattern = 0;
-        if ((name = this->m_catchInputFileName.Chars())
-             && (pattern = this->m_catchInputFileLabel.Chars())) {
-            if ((m_file.OpenSafe(name, pattern))) {
-                if (!(err = WriteInput(m_file, argc, argv, env))) {
-                }
-                m_file.Close();
-            }
-        }
-        return err;
-    }
-
-    ///////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////
-    virtual int WriteEnvironment
-    (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
-        int err = 0;
-        if (0 <  (writer.WriteLn(this->m_catchEnvironmentFileLabel.Chars()))) {
-            protocol::http::cgi::environment::variables::Writer eWriter(writer);
-            eWriter.Write(this->m_environment);
-        }
-        return err;
-    }
-    virtual int WriteArguments
-    (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
-        int err = 0;
-        if (0 <  (writer.WriteLn(this->m_catchArgumentsFileLabel.Chars()))) {
-            porta::console::ArgvWriter aWriter(writer);
-            aWriter.Write(this->m_arguments);
-        }
-        return err;
-    }
-    virtual int WriteForm
-    (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
-        int err = 0;
-        if (0 <  (writer.WriteLn(this->m_catchFormFileLabel.Chars()))) {
-            protocol::http::form::Writer fWriter(writer);
-            fWriter.Write(this->m_form);
-        }
-        return err;
-    }
-    virtual int WriteInput
-    (porta::io::CharWriter& writer, int argc, char** argv, char** env) {
-        int err = 0;
-        if (0 <  (writer.WriteLn(this->m_catchInputFileLabel.Chars()))) {
-            writer.Write(m_content.elements(), m_content.length());
-        }
-        return err;
-    }
-
-    ///////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////
     virtual void OnReadContent
     (const what_t* what, const sized_t* sized, size_t size) {
-        m_content.Append(sized, size);
+        this->Content().Append(sized, size);
     }
     virtual void OnBeginReadContent(size_t size) {
-        m_content.set_size(size);
-        m_content.set_length(0);
-    }
-    virtual void OnEndReadContent(size_t size) {
+        this->Content().set_size(size);
+        this->Content().set_length(0);
     }
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-protected:
-    porta::console::OutIOWriter m_out;
-    porta::io::crt::file::CharWriter m_file;
-    CharArray m_content;
 };
 typedef MainT<> Main;
 
