@@ -94,15 +94,8 @@ porta_INCLUDEPATH += \
 porta_DEFINES += \
 
 porta_LIBS += \
-$${stara_LIBS} \
-$${rete_LIBS} \
-$${fila_LIBS} \
 $${crono_LIBS} \
-$${patrona_LIBS} \
 $${nadir_LIBS} \
-$${rostra_LIBS} \
 $${build_porta_LIBS} \
 -lpthread \
 -ldl \
-
-

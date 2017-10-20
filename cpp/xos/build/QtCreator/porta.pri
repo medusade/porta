@@ -109,7 +109,6 @@ $${build_patrona_INCLUDEPATH} \
 $${build_nadir_INCLUDEPATH} \
 $${build_rostra_INCLUDEPATH} \
 
-
 build_porta_DEFINES += \
 $${build_rostra_DEFINES} \
 $${build_nadir_DEFINES} \
@@ -119,7 +118,6 @@ $${build_fila_DEFINES} \
 $${build_rete_DEFINES} \
 $${build_stara_DEFINES} \
 
-
 build_porta_LIBS += \
 $${build_stara_LIBS} \
 $${build_rete_LIBS} \
@@ -128,5 +126,3 @@ $${build_crono_LIBS} \
 $${build_patrona_LIBS} \
 $${build_nadir_LIBS} \
 $${build_rostra_LIBS} \
-
-

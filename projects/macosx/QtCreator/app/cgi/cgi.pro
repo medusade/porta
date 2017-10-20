@@ -20,8 +20,6 @@
 ########################################################################
 include(../../../../QtCreator/framework.pri)
 include(../../framework.pri)
-include(../../../../QtCreator/texta.pri)
-include(../../texta.pri)
 include(../../../../QtCreator/porta.pri)
 include(../../porta.pri)
 include(../../../../QtCreator/crono.pri)
