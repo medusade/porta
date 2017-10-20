@@ -16,21 +16,20 @@
 ///   File: Main.cpp
 ///
 /// Author: $author$
-///   Date: 4/10/2017
+///   Date: 10/7/2017
 ///////////////////////////////////////////////////////////////////////
-#include "porta/app/console/cgi/Main.hpp"
+#include "xos/console/cgi/catcher/Main.hpp"
 
-namespace porta {
-namespace app {
+namespace xos {
 namespace console {
 namespace cgi {
+namespace catcher {
 
-///////////////////////////////////////////////////////////////////////
-///  Class: MainT
-///////////////////////////////////////////////////////////////////////
+#if defined(XOS_CONSOLE_CGI_CATCHER_THE_MAIN)
 static Main g_theMain;
+#endif // defined(XOS_CONSOLE_CGI_CATCHER_THE_MAIN)
 
-} // namespace cgi
+} // namespace catcher 
+} // namespace cgi 
 } // namespace console 
-} // namespace app 
-} // namespace porta 
+} // namespace xos 

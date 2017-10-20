@@ -23,13 +23,16 @@
 
 #include "xos/console/cgi/MainOpt.hpp"
 #include "xos/console/getopt/Main.hpp"
+#include "xos/console/Argv.hpp"
 #include "xos/protocol/http/cgi/environment/variables/Reader.hpp"
 #include "xos/protocol/http/cgi/environment/variables/Values.hpp"
 #include "xos/protocol/http/form/Fields.hpp"
+#include "xos/protocol/http/form/Field.hpp"
+#include "xos/protocol/http/message/form/Fields.hpp"
+#include "xos/protocol/http/message/form/Field.hpp"
 #include "xos/protocol/http/content/type/header/Field.hpp"
 #include "xos/protocol/http/url/encoded/Reader.hpp"
-#include "xos/io/microsoft/windows/crt/file/Attached.hpp"
-#include "xos/io/crt/file/Reader.hpp"
+#include "xos/io/os/crt/file/Stream.hpp"
 
 namespace xos {
 namespace console {
@@ -70,9 +73,13 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int OutResponse(int argc, char** argv, char** env) {
         int err = 0;
-        //this->OutL("\r\nHello ", m_gatewayInterface.Chars(), "\r\n", NULL);
-        this->OutForm(argc, argv, env);
-        this->OutEnvironment(argc, argv, env);
+        if (!(err = this->OutForm(argc, argv, env))) {
+            if (!(err = this->OutEnvironment(argc, argv, env))) {
+                if (!(err = this->OutArguments(argc, argv, env))) {
+                    err = this->OutContent(argc, argv, env);
+                }
+            }
+        }
         return err;
     }
 
@@ -81,9 +88,11 @@ protected:
     virtual int OutForm(int argc, char** argv, char** env) {
         int err = 0;
         const char *nameChars = 0, *valueChars = 0;
-        const protocol::http::form::Field* f = 0;
-        protocol::http::form::Fields::const_iterator e, i;
+        const protocol::http::message::form::Field* f = 0;
+        protocol::http::message::form::Fields::const_iterator e, i;
+        const String &label = m_catchFormLabel;
 
+        this->Out(label); this->OutLn(":");
         for (e = m_form.End(), i = m_form.Begin(); i != e; ++i) {
             if ((f = (*i))) {
                 const protocol::xttp::message::Part& name = f->Name();
@@ -104,7 +113,9 @@ protected:
     virtual int OutEnvironment(int argc, char** argv, char** env) {
         int err = 0;
         protocol::http::cgi::environment::variable::Which e;
+        const String &label = m_catchEnvLabel;
 
+        this->Out(label); this->OutLn(":");
         for (e = protocol::http::cgi::environment::variable::First;
              e <= protocol::http::cgi::environment::variable::Last; ++e) {
             const char* name = protocol::http::cgi::environment::variable::Name::OfWhich(e);
@@ -120,6 +131,50 @@ protected:
                 }
                 this->OutLn();
             }
+        }
+        this->OutLn();
+        return err;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int OutArguments(int argc, char** argv, char** env) {
+        int err = 0;
+        const String &label = m_catchArgvLabel;
+
+        this->Out(label); this->OutLn(":");
+        if ((0 < (argc = m_arguments.Length()))) {
+            if ((argv = m_arguments.Elements())) {
+                char* arg = 0;
+
+                for (int a = 0; a < argc; ++a) {
+                    if ((arg = argv[a])) {
+                        this->Out("[");
+                        this->Out(SignedToString(a).Chars());
+                        this->Out("] = \"");
+                        this->Out(arg);
+                        this->OutLn("\"");
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        this->OutLn();
+        return err;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int OutContent(int argc, char** argv, char** env) {
+        int err = 0;
+        const char* chars = 0;
+        size_t length = 0;
+        const String &label = m_catchInLabel;
+
+        this->Out(label); this->OutLn(":");
+        if ((chars = m_content.HasChars(length))) {
+            this->Out(chars, length);
         }
         this->OutLn();
         return err;
@@ -252,14 +307,14 @@ protected:
 
             if (!(err = ReadEnvironment(argc, argv, env))) {
 
-                if (!(err = BeforeReadArgv(argc, argv, env))) {
+                if (!(err = BeforeReadArguments(argc, argv, env))) {
 
-                    if (!(err = ReadArgv(argc, argv, env))) {
+                    if (!(err = ReadArguments(argc, argv, env))) {
 
                         if (!(err = BeforeReadContent(argc, argv, env))) {
                         }
                     }
-                    if ((err2 = AfterReadArgv(argc, argv, env))) {
+                    if ((err2 = AfterReadArguments(argc, argv, env))) {
                         if (!err) err = err2;
                     }
                 }
@@ -419,6 +474,7 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int GetArgv(int argc, char** argv, char** env) {
         int err = 0;
+        m_arguments.Assign(argc, argv);
         return err;
     }
     virtual int BeforeGetArgv(int argc, char** argv, char** env) {
@@ -434,6 +490,7 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int BeforeGetContent(int argc, char** argv, char** env) {
         int err = 0;
+        m_content.Clear();
         m_fileReader.Attach(this->StdIn());
         return err;
     }
@@ -464,12 +521,12 @@ protected:
                 XOS_LOG_DEBUG("...reader.Open(chars = \"" << chars << "\")");
                 XOS_LOG_DEBUG("reader.ReadLn()...");
                 if (0 < (reader.ReadLn())) {
-                    protocol::http::cgi::environment::variables::Reader environment(m_environment);
+                    protocol::http::cgi::environment::variables::Reader environment;
                     ssize_t count = 0;
 
                     XOS_LOG_DEBUG("...reader.ReadLn()");
                     XOS_LOG_DEBUG("environment.Read(count, reader)...");
-                    if ((environment.Read(count, reader))) {
+                    if ((environment.Read(count, reader, m_environment))) {
                         XOS_LOG_DEBUG("...environment.Read(count = " << count << ", reader)");
                     } else {
                         XOS_LOG_ERROR("...failed on environment.Read(count = " << count << ", reader)");
@@ -502,15 +559,54 @@ protected:
 
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
-    virtual int ReadArgv(int argc, char** argv, char** env) {
+    virtual int ReadArguments(int argc, char** argv, char** env) {
+        int err = 0;
+        const char* chars = 0;
+        size_t length = 0;
+
+        //m_arguments.Assign(argc, argv);
+        XOS_LOG_DEBUG("m_catchArgvName.HasChars(length)...");
+        if ((chars = m_catchArgvName.HasChars(length))) {
+            io::crt::file::CharReader reader;
+
+            XOS_LOG_DEBUG("...\"" << chars << "\" = m_catchArgvName.HasChars(length = " << length << ")...");
+            XOS_LOG_DEBUG("reader.Open(chars = \"" << chars << "\")...");
+            if ((reader.Open(chars))) {
+                XOS_LOG_DEBUG("...reader.Open(chars = \"" << chars << "\")");
+                XOS_LOG_DEBUG("reader.ReadLn()...");
+                if (0 < (reader.ReadLn())) {
+                    console::ArgvReader arguments;
+                    ssize_t count = 0;
+
+                    XOS_LOG_DEBUG("...reader.ReadLn()");
+                    XOS_LOG_DEBUG("arguments.Read(count, reader, m_arguments)...");
+                    if ((arguments.Read(count, reader, m_arguments))) {
+                        XOS_LOG_DEBUG("...arguments.Read(count = " << count << ", reader, m_arguments)");
+                    } else {
+                        XOS_LOG_ERROR("...failed on arguments.Read(count = " << count << ", reader, m_arguments)");
+                    }
+                } else {
+                    XOS_LOG_ERROR("...failed on reader.ReadLn()");
+                }
+                XOS_LOG_DEBUG("reader.Close()...");
+                if ((reader.Close())) {
+                    XOS_LOG_DEBUG("...reader.Close()");
+                } else {
+                    XOS_LOG_ERROR("...failed on reader.Close()");
+                }
+            } else {
+                XOS_LOG_ERROR("...failed on reader.Open(chars = \"" << chars << "\")");
+            }
+        } else {
+            XOS_LOG_DEBUG("...0 = m_catchArgvName.HasChars(length)...");
+        }
+        return err;
+    }
+    virtual int BeforeReadArguments(int argc, char** argv, char** env) {
         int err = 0;
         return err;
     }
-    virtual int BeforeReadArgv(int argc, char** argv, char** env) {
-        int err = 0;
-        return err;
-    }
-    virtual int AfterReadArgv(int argc, char** argv, char** env) {
+    virtual int AfterReadArguments(int argc, char** argv, char** env) {
         int err = 0;
         return err;
     }
@@ -519,6 +615,8 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual int BeforeReadContent(int argc, char** argv, char** env) {
         int err = 0;
+
+        m_content.Clear();
         XOS_LOG_DEBUG("m_fileReader.Open(m_catchInName = \"" << m_catchInName << "\")...");
         if ((m_fileReader.Open(m_catchInName))) {
             XOS_LOG_DEBUG("...m_fileReader.Open(m_catchInName = \"" << m_catchInName << "\")");
@@ -671,8 +769,9 @@ protected:
     virtual int ReadUrlencodedFormData
     (size_t contentLength, int argc, char** argv, char** env) {
         int err = 0;
+        io::CharReadObserverToString charsObserver(m_content);
         io::SizedCharReader charsReader(m_fileReader, contentLength);
-        protocol::http::url::encoded::CharReader encodedReader(charsReader);
+        protocol::http::url::encoded::CharReader encodedReader(charsObserver, charsReader);
         ssize_t count = 0;
         char c = 0;
 
@@ -686,6 +785,142 @@ protected:
     }
     virtual int ReadMultipartFormData
     (size_t contentLength, int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+
+    ///
+    /// Write
+    ///
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int WriteForm(int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+    virtual int WriteForm
+    (io::crt::file::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        String& label = m_catchFormLabel;
+
+        XOS_LOG_DEBUG("writer.WriteLn(\"" << label << "\")...");
+        if (0 < (writer.WriteLn(label.Chars()))) {
+            protocol::http::message::form::Writer form;
+            ssize_t count = 0;
+
+            XOS_LOG_DEBUG("...writer.WriteLn(\"" << label << "\")");
+            XOS_LOG_DEBUG("form.Write(count, writer)...");
+            if ((form.Write(count, writer, m_form))) {
+                XOS_LOG_DEBUG("...form.Write(count = " << count << ", writer)");
+            } else {
+                XOS_LOG_ERROR("...failed on form.Write(count = " << count << ", writer)");
+            }
+        } else {
+            XOS_LOG_ERROR("...failed on writer.WriteLn(\"" << label << "\")");
+        }
+        return err;
+    }
+    virtual int BeforeWriteForm
+    (io::crt::file::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+    virtual int AfterWriteForm
+    (io::crt::file::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int WriteEnvironment(int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+    virtual int WriteEnvironment
+    (io::crt::file::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        String& label = m_catchEnvLabel;
+
+        XOS_LOG_DEBUG("writer.WriteLn(\"" << label << "\")...");
+        if (0 < (writer.WriteLn(label.Chars()))) {
+            protocol::http::cgi::environment::variables::Writer environment;
+            ssize_t count = 0;
+
+            XOS_LOG_DEBUG("...writer.WriteLn(\"" << label << "\")");
+            XOS_LOG_DEBUG("environment.Write(count, writer)...");
+            if ((environment.Write(count, writer, m_environment))) {
+                XOS_LOG_DEBUG("...environment.Write(count = " << count << ", writer)");
+            } else {
+                XOS_LOG_ERROR("...failed on environment.Write(count = " << count << ", writer)");
+            }
+        } else {
+            XOS_LOG_ERROR("...failed on writer.WriteLn(\"" << label << "\")");
+        }
+        return err;
+    }
+    virtual int BeforeWriteEnvironment
+    (io::crt::file::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+    virtual int AfterWriteEnvironment
+    (io::crt::file::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int WriteArguments(int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+    virtual int WriteArguments
+    (io::crt::file::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        String& label = m_catchArgvLabel;
+
+        XOS_LOG_DEBUG("writer.WriteLn(\"" << label << "\")...");
+        if (0 < (writer.WriteLn(label.Chars()))) {
+            console::ArgvWriter arguments;
+            ssize_t count = 0;
+
+            XOS_LOG_DEBUG("...writer.WriteLn(\"" << label << "\")");
+            XOS_LOG_DEBUG("arguments.Write(count, writer)...");
+            if ((arguments.Write(count, writer, m_arguments))) {
+                XOS_LOG_DEBUG("...arguments.Write(count = " << count << ", writer)");
+            } else {
+                XOS_LOG_ERROR("...failed on arguments.Write(count = " << count << ", writer)");
+            }
+        } else {
+            XOS_LOG_ERROR("...failed on writer.WriteLn(\"" << label << "\")");
+        }
+        return err;
+    }
+    virtual int BeforeWriteArguments
+    (io::crt::file::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+    virtual int AfterWriteArguments
+    (io::crt::file::CharWriter& writer, int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    virtual int WriteStdin(int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+    virtual int BeforeWriteStdin(int argc, char** argv, char** env) {
+        int err = 0;
+        return err;
+    }
+    virtual int AfterWriteStdin(int argc, char** argv, char** env) {
         int err = 0;
         return err;
     }
@@ -772,12 +1007,24 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     virtual bool SetFileModeIsBinary(FILE* file, bool to = true) const {
         if (file) {
-            io::microsoft::windows::crt::file::Attached f(file);
+            io::os::crt::file::Opened f(file);
             if (f.SetModeIsBinary(to)) {
                 return true;
             }
         }
         return false;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
+    using Implements::Out;
+    virtual ssize_t Out(const String& s) {
+        const char_t* chars = 0;
+        size_t length = 0;
+        if ((chars = s.HasChars(length))) {
+            return this->Out(chars, length);
+        }
+        return 0;
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -795,9 +1042,11 @@ protected:
     const protocol::http::content::type::urlencodedformdata::header::Field m_contentTypeUrlEncodedFormData;
     const protocol::http::content::type::multipartformdata::header::Field m_contentTypeMultipartFormData;
     protocol::http::cgi::environment::variables::Values m_environment;
-    protocol::http::form::Fields m_form;
-    io::crt::file::CharReader m_fileReader;
+    protocol::http::message::form::Fields m_form;
+    console::Argv m_arguments;
+    String m_content;
     String m_gatewayInterface;
+    io::crt::file::CharReader m_fileReader;
 };
 typedef  MainT<> Main;
 
