@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<!--========================================================================-->
+<!-- Copyright (c) 1988-2019 $organization$                                 -->
+<!--                                                                        -->
+<!-- This software is provided by the author and contributors ``as is''     -->
+<!-- and any express or implied warranties, including, but not limited to,  -->
+<!-- the implied warranties of merchantability and fitness for a particular -->
+<!-- purpose are disclaimed. In no event shall the author or contributors   -->
+<!-- be liable for any direct, indirect, incidental, special, exemplary,    -->
+<!-- or consequential damages (including, but not limited to, procurement   -->
+<!-- of substitute goods or services; loss of use, data, or profits; or     -->
+<!-- business interruption) however caused and on any theory of liability,  -->
+<!-- whether in contract, strict liability, or tort (including negligence   -->
+<!-- or otherwise) arising in any way out of the use of this software,      -->
+<!-- even if advised of the possibility of such damage.                     -->
+<!--                                                                        -->
+<!--   File: porta.props                                                    -->
+<!--                                                                        -->
+<!-- Author: $author$                                                       -->
+<!--   Date: 3/7/2019                                                       -->
+<!--========================================================================-->
+<Project
+  ToolsVersion="4.0"
+  xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--===============================================-->
+
+  <PropertyGroup Label="UserMacros">
+      <PORTA_GROUP></PORTA_GROUP>
+      <PORTA_NAME>porta</PORTA_NAME>
+      <PORTA_VERSION></PORTA_VERSION>
+
+      <PORTA_DIR>$(PORTA_GROUP)$(PORTA_NAME)$(PORTA_VERSION)</PORTA_DIR>
+      <PORTA_SOURCE_DIR>$(SOURCE_ROOT_DIR)/$(PORTA_DIR)/src</PORTA_SOURCE_DIR>
+      <PORTA_BUILD_DIR>$(SOURCE_BUILD_DIR)/$(PORTA_DIR)/build</PORTA_BUILD_DIR>
+      <PORTA_BUILD>$(PORTA_BUILD_DIR)/$(PlatformName)/$(VCVersion)/$(Configuration)</PORTA_BUILD>
+      <PORTA_OBJ>$(PORTA_BUILD)/obj/$(ProjectName)</PORTA_OBJ>
+      <PORTA_LIB>$(PORTA_BUILD)/lib</PORTA_LIB>
+      <PORTA_BIN>$(PORTA_BUILD)/bin</PORTA_BIN>
+
+      <PORTA_DEFINES></PORTA_DEFINES>
+      <PORTA_DEBUG_DEFINES>$(PORTA_DEFINES);$(STARA_DEBUG_DEFINES)</PORTA_DEBUG_DEFINES>
+      <PORTA_RELEASE_DEFINES>$(PORTA_DEFINES);$(STARA_RELEASE_DEFINES)</PORTA_RELEASE_DEFINES>
+      <PORTA_INCLUDE_DIRS>$(PORTA_SOURCE_DIR)</PORTA_INCLUDE_DIRS>
+      <VC10_PORTA_INCLUDE_DIRS>$(PORTA_INCLUDE_DIRS);$(VC10_STARA_INCLUDE_DIRS)</VC10_PORTA_INCLUDE_DIRS>
+      <VC14_PORTA_INCLUDE_DIRS>$(PORTA_INCLUDE_DIRS);$(VC14_STARA_INCLUDE_DIRS)</VC14_PORTA_INCLUDE_DIRS>
+      <PORTA_LIB_DIRS>$(PORTA_LIB);$(STARA_LIB_DIRS)</PORTA_LIB_DIRS>
+      <PORTA_LIBS>libporta.lib;$(STARA_LIBS)</PORTA_LIBS>
+  </PropertyGroup>
+
+  <!--===============================================-->
+
+  <ItemGroup>
+      <BuildMacro Include="PORTA_GROUP">
+          <Value>$(PORTA_GROUP)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_NAME">
+          <Value>$(PORTA_NAME)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_VERSION">
+          <Value>$(PORTA_VERSION)</Value>
+      </BuildMacro>
+      
+      <BuildMacro Include="PORTA_DIR">
+          <Value>$(PORTA_DIR)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_SOURCE_DIR">
+          <Value>$(PORTA_SOURCE_DIR)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_BUILD_DIR">
+          <Value>$(PORTA_BUILD_DIR)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_BUILD">
+          <Value>$(PORTA_BUILD)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_OBJ">
+          <Value>$(PORTA_OBJ)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_LIB">
+          <Value>$(PORTA_LIB)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_BIN">
+          <Value>$(PORTA_BIN)</Value>
+      </BuildMacro>
+      
+      <BuildMacro Include="PORTA_DEFINES">
+          <Value>$(PORTA_DEFINES)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_DEBUG_DEFINES">
+          <Value>$(PORTA_DEBUG_DEFINES)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_RELEASE_DEFINES">
+          <Value>$(PORTA_RELEASE_DEFINES)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_INCLUDE_DIRS">
+          <Value>$(PORTA_INCLUDE_DIRS)</Value>
+      </BuildMacro>
+      <BuildMacro Include="VC10_PORTA_INCLUDE_DIRS">
+          <Value>$(VC10_PORTA_INCLUDE_DIRS)</Value>
+      </BuildMacro>
+      <BuildMacro Include="VC14_PORTA_INCLUDE_DIRS">
+          <Value>$(VC14_PORTA_INCLUDE_DIRS)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_LIB_DIRS">
+          <Value>$(PORTA_LIB_DIRS)</Value>
+      </BuildMacro>
+      <BuildMacro Include="PORTA_LIBS">
+          <Value>$(PORTA_LIBS)</Value>
+      </BuildMacro>
+  </ItemGroup>
+
+  <!--===============================================-->
+
+</Project>
