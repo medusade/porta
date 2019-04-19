@@ -13,68 +13,95 @@
 # or otherwise) arising in any way out of the use of this software,
 # even if advised of the possibility of such damage.
 #
-#   File: cgi.pri
+#   File: Makefile
 #
 # Author: $author$
-#   Date: 1/2/2019
+#   Date: 4/10/2019
 #
-# QtCreator .pri file for porta executable cgi
+# generic Gcc Makefile for porta Executable cgi
 ########################################################################
 
-########################################################################
-# cgi
 
-# cgi TARGET
 #
-cgi_TARGET = cgi
-
-# cgi INCLUDEPATH
+# target
 #
-cgi_INCLUDEPATH += \
-$${porta_INCLUDEPATH} \
-
-# cgi DEFINES
-#
-cgi_DEFINES += \
-$${porta_DEFINES} \
+cgi_EXETARGET = cgi
 
 ########################################################################
-# cgi OBJECTIVE_HEADERS
-#
-#cgi_OBJECTIVE_HEADERS += \
-#$${PORTA_SRC}/porta/base/Base.hh \
 
-# cgi OBJECTIVE_SOURCES
 #
-#cgi_OBJECTIVE_SOURCES += \
-#$${PORTA_SRC}/porta/base/Base.mm \
+# user c++ flags
+#
+cgi_USRCXXFLAGS += \
+${porta_USRCXXFLAGS} \
+
+#
+# user defines
+#
+cgi_USRDEFINES += \
+${porta_USRDEFINES} \
+
+#
+# user includes
+#
+cgi_USRINCLUDES += \
+${porta_USRINCLUDES} \
+
+#
+# user libdirs
+#
+cgi_USRLIBDIRS += \
+${porta_USRLIBDIRS} \
 
 ########################################################################
-# cgi HEADERS
+
 #
-cgi_HEADERS += \
-$${PATRONA_SRC}/patrona/console/Argv.hpp \
+# Executable .c sources
+#
+#cgi_EXE_C_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.c \
+
+#
+# Executable .cc sources
+#
+#cgi_EXE_CC_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.cc \
+
+#
+# Executable .cxx sources
+#
+#cgi_EXE_CXX_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.cxx \
+
+#
+# Executable .cpp sources
+#
+cgi_EXE_CPP_SOURCES += \
+${PATRONA_SRC}/patrona/console/Argv.cpp \
 \
-$${PORTA_SRC}/porta/app/console/cgi/MainOpt.hpp \
-$${PORTA_SRC}/porta/app/console/cgi/Main.hpp \
+${PORTA_SRC}/porta/app/console/cgi/MainOpt.cpp \
+${PORTA_SRC}/porta/app/console/cgi/Main.cpp \
 
-# cgi SOURCES
 #
-cgi_SOURCES += \
-$${PATRONA_SRC}/patrona/console/Argv.cpp \
-\
-$${PORTA_SRC}/porta/app/console/cgi/MainOpt.cpp \
-$${PORTA_SRC}/porta/app/console/cgi/Main.cpp \
+# Executable .m sources
+#
+#cgi_EXE_M_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.m \
+
+#
+# Executable .mm sources
+#
+#cgi_EXE_MM_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.mm \
+
 
 ########################################################################
-# cgi FRAMEWORKS
-#
-cgi_FRAMEWORKS += \
-$${porta_FRAMEWORKS} \
 
-# cgi LIBS
+#
+# Executable libraries
 #
 cgi_LIBS += \
-$${porta_LIBS} \
+${porta_LIBS}
+
 
 

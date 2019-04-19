@@ -13,68 +13,88 @@
 # or otherwise) arising in any way out of the use of this software,
 # even if advised of the possibility of such damage.
 #
-#   File: cgi.pri
+#   File: Makefile
 #
 # Author: $author$
-#   Date: 1/2/2019
+#   Date: 4/10/2019
 #
-# QtCreator .pri file for porta executable cgi
+# generic Gcc Makefile for porta Library libporta
 ########################################################################
 
-########################################################################
-# cgi
 
-# cgi TARGET
 #
-cgi_TARGET = cgi
-
-# cgi INCLUDEPATH
+# target
 #
-cgi_INCLUDEPATH += \
-$${porta_INCLUDEPATH} \
-
-# cgi DEFINES
-#
-cgi_DEFINES += \
-$${porta_DEFINES} \
+libporta_LIBTARGET = libporta.${LIBEXT}
 
 ########################################################################
-# cgi OBJECTIVE_HEADERS
-#
-#cgi_OBJECTIVE_HEADERS += \
-#$${PORTA_SRC}/porta/base/Base.hh \
 
-# cgi OBJECTIVE_SOURCES
 #
-#cgi_OBJECTIVE_SOURCES += \
-#$${PORTA_SRC}/porta/base/Base.mm \
+# user c++ flags
+#
+libporta_USRCXXFLAGS += \
+${porta_USRCXXFLAGS} \
 
-########################################################################
-# cgi HEADERS
 #
-cgi_HEADERS += \
-$${PATRONA_SRC}/patrona/console/Argv.hpp \
-\
-$${PORTA_SRC}/porta/app/console/cgi/MainOpt.hpp \
-$${PORTA_SRC}/porta/app/console/cgi/Main.hpp \
+# user defines
+#
+libporta_USRDEFINES += \
+${porta_USRDEFINES} \
 
-# cgi SOURCES
 #
-cgi_SOURCES += \
-$${PATRONA_SRC}/patrona/console/Argv.cpp \
-\
-$${PORTA_SRC}/porta/app/console/cgi/MainOpt.cpp \
-$${PORTA_SRC}/porta/app/console/cgi/Main.cpp \
+# user includes
+#
+libporta_USRINCLUDES += \
+${porta_USRINCLUDES} \
+
+#
+# user libdirs
+#
+libporta_USRLIBDIRS += \
+${porta_USRLIBDIRS} \
 
 ########################################################################
-# cgi FRAMEWORKS
-#
-cgi_FRAMEWORKS += \
-$${porta_FRAMEWORKS} \
 
-# cgi LIBS
 #
-cgi_LIBS += \
-$${porta_LIBS} \
+# Library .c sources
+#
+#libporta_LIB_C_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.c \
+
+#
+# Library .cc sources
+#
+#libporta_LIB_CC_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.cc \
+
+#
+# Library .cxx sources
+#
+#libporta_LIB_CXX_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.cxx \
+
+#
+# Library .cpp sources
+#
+libporta_LIB_CPP_SOURCES += \
+${PORTA_SRC}/porta/base/Base.cpp \
+${PORTA_SRC}/porta/lib/porta/Version.cpp \
+
+#
+# Library .m sources
+#
+#libporta_LIB_M_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.m \
+
+#
+# Library .mm sources
+#
+#libporta_LIB_MM_SOURCES += \
+#${PORTA_SRC}/porta/base/Base.mm \
+
+
+########################################################################
+
+
 
 
