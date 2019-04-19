@@ -41,7 +41,7 @@
 #include "porta/io/os/crt/file/Attached.hpp"
 #include "porta/io/crt/file/Writer.hpp"
 #include "porta/io/crt/file/Reader.hpp"
-#include "porta/console/getopt/Main.hpp"
+#include "porta/app/console/cgi/MainOpt.hpp"
 
 namespace porta {
 namespace app {
@@ -49,17 +49,32 @@ namespace console {
 namespace cgi {
 
 typedef porta::protocol::http::content::ReadObserver MainTContentReadObserver;
-typedef porta::console::getopt::MainImplements MainTImplements;
-typedef porta::console::getopt::Main MainTExtends;
+typedef porta::app::console::cgi::MainOpt::Implements MainTImplement;
+///////////////////////////////////////////////////////////////////////
+///  Class: MainTImplementsT
+///////////////////////////////////////////////////////////////////////
+template
+<class TContentReadObserver = MainTContentReadObserver,
+ class TImplements = MainTImplement>
+
+class _EXPORT_CLASS MainTImplementsT
+: virtual public TContentReadObserver, virtual public TImplements {
+public:
+    typedef TImplements Implements;
+}; /// class _EXPORT_CLASS MainTImplementsT
+
+typedef MainTImplementsT<> MainTImplements;
+typedef porta::app::console::cgi::MainOpt MainTExtends;
 ///////////////////////////////////////////////////////////////////////
 ///  Class: MainT
 ///////////////////////////////////////////////////////////////////////
 template
-<class TContentReadObserver = MainTContentReadObserver,
- class TImplements = MainTImplements, class TExtends = MainTExtends>
+</*class TContentReadObserver = MainTContentReadObserver,
+ */class TImplements = MainTImplements, class TExtends = MainTExtends>
+
 class _EXPORT_CLASS MainT
-: virtual public TContentReadObserver,
-  virtual public TImplements, public TExtends {
+: /*virtual public TContentReadObserver,
+  */virtual public TImplements, public TExtends {
 public:
     typedef TImplements Implements;
     typedef TExtends Extends;
@@ -84,6 +99,9 @@ public:
       m_outWriter(*this)  {
     }
     virtual ~MainT() {
+    }
+private:
+    MainT(const MainT& copy) {
     }
 
 protected:
@@ -609,6 +627,10 @@ protected:
     ///////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////
     virtual int Run(int argc, char** argv, char** env) {
+        int err = ConsoleOrCgiRun(argc, argv, env);
+        return err;
+    }
+    virtual int ConsoleOrCgiRun(int argc, char** argv, char** env) {
         int err = 0, err2 = 0;
         if ((GatewayInterface())) {
             if (!(err = BeforeCgiRun(argc, argv, env))) {

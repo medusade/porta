@@ -22,21 +22,23 @@
 #define _PORTA_APP_CONSOLE_PORTA_MAIN_HPP
 
 #include "porta/console/lib/porta/version/Main.hpp"
+#include "porta/app/console/cgi/Main.hpp"
 
 namespace porta {
 namespace app {
 namespace console {
 namespace porta {
 
-typedef ::porta::console::lib::porta::version::Main::Implements Main_implements;
-typedef ::porta::console::lib::porta::version::Main Main_extends;
+typedef ::porta::console::lib::porta::version::MainT
+< ::porta::app::console::cgi::Main::Implements, ::porta::app::console::cgi::Main> MainExtends;
+typedef MainExtends::Implements MainImplements;
 ///////////////////////////////////////////////////////////////////////
 ///  Class: Main
 ///////////////////////////////////////////////////////////////////////
-class _EXPORT_CLASS Main: virtual public Main_implements, public Main_extends {
+class _EXPORT_CLASS Main: virtual public MainImplements, public MainExtends {
 public:
-    typedef Main_implements Implements;
-    typedef Main_extends Extends;
+    typedef MainImplements Implements;
+    typedef MainExtends Extends;
     typedef Main Derives;
 
     ///////////////////////////////////////////////////////////////////////
@@ -63,10 +65,11 @@ protected:
         return err;
     }
     virtual int DefaultRun(int argc, char_t **argv, char_t **env) {
-        int err = 0;
-        if (!(err = Extends::Run(argc, argv, env))) {
-            Usage(argc, argv, env);
-        }
+        int err = ConsoleOrCgiRun(argc, argv, env);
+        return err;
+    }
+    virtual int RunCgi(int argc, char** argv, char** env) {
+        int err = Extends::Run(argc, argv, env);
         return err;
     }
 
